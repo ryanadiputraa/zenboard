@@ -7,6 +7,15 @@ createdb:
 dropdb:
 	docker exec -it postgres15.3 dropdb zenboard
 
+migrateup:
+	migrate -path pkg/db/migration -database "postgresql://root:root@localhost:5432/zenboard?sslmode=disable" -verbose up
+
+migratedown:
+	migrate -path pkg/db/migration -database "postgresql://root:root@localhost:5432/zenboard?sslmode=disable" -verbose down
+
+sqlc:
+	sqlc generate
+
 test:
 	go test -v -cover ./...
 
