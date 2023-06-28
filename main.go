@@ -1,7 +1,9 @@
 package main
 
-import "log"
+import (
+	"github.com/ryanadiputraa/zenboard/cmd"
+)
 
 func main() {
-	log.Print("Hello World!")
+	cmd.ServeHTTP()
 }
