@@ -12,7 +12,7 @@ RETURNING *;
 
 -- name: ListUsers :many
 SELECT * FROM users
-WHERE id = ANY($1);
+WHERE id = ANY(sqlc.arg(ids)::VARCHAR[]);
 
 -- name: GetUser :one
 SELECT * FROM users

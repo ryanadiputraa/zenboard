@@ -16,9 +16,9 @@ var (
 
 func init() {
 	setupLoger()
-	loadCondig()
+	loadConfig()
 
-	conn, err := sql.Open(viper.GetString("DB_DRIVER"), viper.GetString("DB_DSN"))
+	conn, err := sql.Open(viper.GetString("DB_DRIVER"), viper.GetString("DB_SOURCE"))
 	if err != nil {
 		log.Fatalf("fail to open db connection: %s", err)
 	}
@@ -33,7 +33,7 @@ func setupLoger() {
 	})
 }
 
-func loadCondig() {
+func loadConfig() {
 	viper.AddConfigPath(".")
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
