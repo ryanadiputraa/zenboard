@@ -12,7 +12,7 @@ type userRepository struct {
 	db *db.Queries
 }
 
-func NewUserRepository(db *db.Queries) domain.IUserRepository {
+func NewUserRepository(db *db.Queries) domain.UserRepository {
 	return &userRepository{
 		db: db,
 	}
