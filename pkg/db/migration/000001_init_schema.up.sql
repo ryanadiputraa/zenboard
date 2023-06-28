@@ -2,7 +2,7 @@ CREATE TABLE "users" (
   "id" varchar PRIMARY KEY,
   "first_name" varchar NOT NULL,
   "last_name" varchar NOT NULL,
-  "email" varchar NOT NULL,
+  "email" varchar UNIQUE NOT NULL,
   "picture" varchar,
   "locale" varchar NOT NULL,
   "board_limit" int NOT NULL,
@@ -11,9 +11,9 @@ CREATE TABLE "users" (
 
 CREATE TABLE "boards" (
   "id" varchar PRIMARY KEY,
-  "project_name" varchar NOT NULL,
+  "project_name" varchar UNIQUE NOT NULL,
   "picture" varchar,
-  "owner_id" varchar,
+  "owner_id" varchar NOT NULL,
   "created_at" timestamptz NOT NULL
 );
 
@@ -21,12 +21,12 @@ CREATE TABLE "task_status" (
   "id" varchar PRIMARY KEY,
   "order" int NOT NULL,
   "name" varchar NOT NULL,
-  "board_id" varchar
+  "board_id" varchar NOT NULL
 );
 
 CREATE TABLE "members" (
-  "user_id" varchar UNIQUE,
-  "board_id" varchar
+  "user_id" varchar NOT NULL,
+  "board_id" varchar NOT NULL
 );
 
 CREATE TABLE "tasks" (
@@ -34,17 +34,17 @@ CREATE TABLE "tasks" (
   "name" varchar NOT NULL,
   "order" int NOT NULL,
   "tag" varchar,
-  "assignee" varchar,
-  "board_id" varchar,
-  "status_id" varchar,
+  "assignee" varchar NOT NULL,
+  "board_id" varchar NOT NULL,
+  "status_id" varchar NOT NULL,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL
 );
 
 CREATE TABLE "comments" (
   "id" varchar PRIMARY KEY,
-  "user_id" varchar,
-  "task_id" varchar,
+  "user_id" varchar NOT NULL,
+  "task_id" varchar NOT NULL,
   "comment" varchar NOT NULL,
   "created_at" timestamptz NOT NULL
 );
