@@ -1,15 +1,28 @@
 package cmd
 
 import (
+	"database/sql"
 	"os"
 
+	_ "github.com/lib/pq"
+	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+)
+
+var (
+	DB *db.Queries
 )
 
 func init() {
 	setupLoger()
 	loadCondig()
+
+	conn, err := sql.Open(viper.GetString("DB_DRIVER"), viper.GetString("DB_DSN"))
+	if err != nil {
+		log.Fatalf("fail to open db connection: %s", err)
+	}
+	DB = db.New(conn)
 }
 
 func setupLoger() {
