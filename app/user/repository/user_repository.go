@@ -23,7 +23,7 @@ func (r *userRepository) Save(ctx context.Context, user domain.User) (createdUse
 		ID:         user.ID,
 		FirstName:  user.FirstName,
 		LastName:   user.LastName,
-		Email:      user.LastName,
+		Email:      user.Email,
 		Picture:    sql.NullString{String: user.Picture, Valid: true},
 		Locale:     user.Locale,
 		BoardLimit: user.BoardLimit,
