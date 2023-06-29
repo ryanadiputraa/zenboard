@@ -11,8 +11,30 @@ import (
 	"github.com/google/uuid"
 	"github.com/ryanadiputraa/zenboard/domain"
 	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
+
+type UserRepositoryTestSuite struct {
+	suite.Suite
+	mock       sqlmock.Sqlmock
+	repository domain.UserRepository
+}
+
+func TestUserRepositoryTestSuite(t *testing.T) {
+	suite.Run(t, &UserRepositoryTestSuite{})
+}
+
+func (ts *UserRepositoryTestSuite) SetupTest() {
+	conn, mock, err := sqlmock.New()
+	if err != nil {
+		ts.FailNow("fail to create mock db: %s", err)
+	}
+	mockDB := db.New(conn)
+	repository := NewUserRepository(mockDB)
+
+	ts.mock = mock
+	ts.repository = repository
+}
 
 func createRandomUser() domain.User {
 	return domain.User{
@@ -27,86 +49,66 @@ func createRandomUser() domain.User {
 	}
 }
 
-func TestSave(t *testing.T) {
-	conn, mock, err := sqlmock.New()
-	if err != nil {
-		assert.FailNow(t, "fail to create mock db: %s", err)
-	}
-	defer conn.Close()
-
-	mockDB := db.New(conn)
-	repo := NewUserRepository(mockDB)
-
+func (ts *UserRepositoryTestSuite) TestSave() {
 	cases := []struct {
 		name              string
-		mockRepoBehaviour func(t *testing.T, mock sqlmock.Sqlmock)
+		mockRepoBehaviour func(mock sqlmock.Sqlmock)
 	}{
 		{
 			name: "should create a user",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				user := createRandomUser()
-				assert := assert.New(t)
 
 				mock.ExpectQuery("INSERT INTO users").WillReturnRows(
 					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at"}).
 						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt),
 				)
 
-				created, err := repo.Save(context.TODO(), user)
-				assert.NoError(err)
-				assert.NotEmpty(created)
+				created, err := ts.repository.Save(context.TODO(), user)
+				ts.NoError(err)
+				ts.NotEmpty(created)
 
-				assert.Equal(user.ID, created.ID)
-				assert.Equal(user.FirstName, created.FirstName)
-				assert.Equal(user.LastName, created.LastName)
-				assert.Equal(user.Email, created.Email)
-				assert.Equal(user.Picture, created.Picture)
-				assert.Equal(user.Locale, created.Locale)
-				assert.Equal(user.BoardLimit, created.BoardLimit)
-				assert.NotZero(created.CreatedAt)
+				ts.Equal(user.ID, created.ID)
+				ts.Equal(user.FirstName, created.FirstName)
+				ts.Equal(user.LastName, created.LastName)
+				ts.Equal(user.Email, created.Email)
+				ts.Equal(user.Picture, created.Picture)
+				ts.Equal(user.Locale, created.Locale)
+				ts.Equal(user.BoardLimit, created.BoardLimit)
+				ts.NotZero(created.CreatedAt)
 			},
 		},
 		{
 			name: "should fail to create user",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				user := createRandomUser()
-				assert := assert.New(t)
 
 				mock.ExpectQuery("INSERT INTO users").WillReturnError(sql.ErrNoRows)
 
-				created, err := repo.Save(context.TODO(), user)
-				assert.EqualError(sql.ErrNoRows, err.Error())
-				assert.Empty(created)
+				created, err := ts.repository.Save(context.TODO(), user)
+				ts.EqualError(sql.ErrNoRows, err.Error())
+				ts.Empty(created)
 			},
 		},
 	}
 
 	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			c.mockRepoBehaviour(t, mock)
+		ts.Run(c.name, func() {
+			c.mockRepoBehaviour(ts.mock)
 		})
 	}
 }
 
-func TestList(t *testing.T) {
-	conn, mock, err := sqlmock.New()
-	if err != nil {
-		assert.FailNow(t, "fail to create mock db: %s", err)
-	}
-	defer conn.Close()
-
-	mockDB := db.New(conn)
-	repo := NewUserRepository(mockDB)
+func (ts *UserRepositoryTestSuite) TestList() {
 	cases := []struct {
 		name              string
-		mockRepoBehaviour func(t *testing.T, mock sqlmock.Sqlmock)
+		mockRepoBehaviour func(mock sqlmock.Sqlmock)
 	}{
 		{
 			name: "should return list of users within array of id(s)",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				var users []domain.User
 				var ids []string
-				assert := assert.New(t)
 
 				for i := 0; i < 5; i++ {
 					user := createRandomUser()
@@ -123,28 +125,27 @@ func TestList(t *testing.T) {
 						AddRow(users[4].ID, users[4].FirstName, users[4].LastName, users[4].Email, users[4].Picture, users[4].Locale, users[4].BoardLimit, users[4].CreatedAt),
 				)
 
-				list, err := repo.List(context.TODO(), ids)
-				assert.NoError(err)
-				assert.Len(list, 5)
+				list, err := ts.repository.List(context.TODO(), ids)
+				ts.NoError(err)
+				ts.Len(list, 5)
 
 				for i, v := range list {
-					assert.NotEmpty(v)
-					assert.Equal(users[i].ID, v.ID)
-					assert.Equal(users[i].FirstName, v.FirstName)
-					assert.Equal(users[i].LastName, v.LastName)
-					assert.Equal(users[i].Email, v.Email)
-					assert.Equal(users[i].Picture, v.Picture)
-					assert.Equal(users[i].Locale, v.Locale)
-					assert.Equal(users[i].BoardLimit, v.BoardLimit)
-					assert.NotZero(v.CreatedAt)
+					ts.NotEmpty(v)
+					ts.Equal(users[i].ID, v.ID)
+					ts.Equal(users[i].FirstName, v.FirstName)
+					ts.Equal(users[i].LastName, v.LastName)
+					ts.Equal(users[i].Email, v.Email)
+					ts.Equal(users[i].Picture, v.Picture)
+					ts.Equal(users[i].Locale, v.Locale)
+					ts.Equal(users[i].BoardLimit, v.BoardLimit)
+					ts.NotZero(v.CreatedAt)
 				}
 			},
 		},
 		{
 			name: "should fail to list users that didn't exists",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				var ids []string
-				assert := assert.New(t)
 
 				for i := 0; i < 5; i++ {
 					user := createRandomUser()
@@ -152,73 +153,63 @@ func TestList(t *testing.T) {
 				}
 				mock.ExpectQuery("SELECT (.+) FROM users WHERE id = ANY").WillReturnError(sql.ErrNoRows)
 
-				users, err := repo.List(context.TODO(), ids)
-				assert.Empty(users)
-				assert.EqualError(sql.ErrNoRows, err.Error())
+				users, err := ts.repository.List(context.TODO(), ids)
+				ts.Empty(users)
+				ts.EqualError(sql.ErrNoRows, err.Error())
 			},
 		},
 	}
 
 	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			c.mockRepoBehaviour(t, mock)
+		ts.Run(c.name, func() {
+			c.mockRepoBehaviour(ts.mock)
 		})
 	}
 }
-func TestFindByID(t *testing.T) {
-	conn, mock, err := sqlmock.New()
-	if err != nil {
-		assert.FailNow(t, "fail to create mock db: %s", err)
-	}
-	defer conn.Close()
-
-	mockDB := db.New(conn)
-	repo := NewUserRepository(mockDB)
+func (ts *UserRepositoryTestSuite) TestFindByID() {
 	cases := []struct {
 		name              string
-		mockRepoBehaviour func(t *testing.T, mock sqlmock.Sqlmock)
+		mockRepoBehaviour func(mock sqlmock.Sqlmock)
 	}{
 		{
 			name: "should return a user data with correct id",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				user := createRandomUser()
-				assert := assert.New(t)
 
 				mock.ExpectQuery("SELECT (.+) FROM users").WillReturnRows(
 					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at"}).
 						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt),
 				)
 
-				data, err := repo.FindByID(context.TODO(), user.ID)
-				assert.NotEmpty(data)
-				assert.NoError(err)
+				data, err := ts.repository.FindByID(context.TODO(), user.ID)
+				ts.NotEmpty(data)
+				ts.NoError(err)
 
-				assert.Equal(user.ID, data.ID)
-				assert.Equal(user.FirstName, data.FirstName)
-				assert.Equal(user.LastName, data.LastName)
-				assert.Equal(user.Email, data.Email)
-				assert.Equal(user.Picture, data.Picture)
-				assert.Equal(user.Locale, data.Locale)
-				assert.Equal(user.BoardLimit, data.BoardLimit)
-				assert.NotZero(data.CreatedAt)
+				ts.Equal(user.ID, data.ID)
+				ts.Equal(user.FirstName, data.FirstName)
+				ts.Equal(user.LastName, data.LastName)
+				ts.Equal(user.Email, data.Email)
+				ts.Equal(user.Picture, data.Picture)
+				ts.Equal(user.Locale, data.Locale)
+				ts.Equal(user.BoardLimit, data.BoardLimit)
+				ts.NotZero(data.CreatedAt)
 			},
 		},
 		{
 			name: "should fail to find user that didn't exists",
-			mockRepoBehaviour: func(t *testing.T, mock sqlmock.Sqlmock) {
-				assert := assert.New(t)
+			mockRepoBehaviour: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("SELECT (.+) FROM users").WillReturnError(sql.ErrNoRows)
 
-				user, err := repo.FindByID(context.TODO(), uuid.NewString())
-				assert.Empty(user)
-				assert.EqualError(sql.ErrNoRows, err.Error())
+				user, err := ts.repository.FindByID(context.TODO(), uuid.NewString())
+				ts.Empty(user)
+				ts.EqualError(sql.ErrNoRows, err.Error())
 			},
 		},
 	}
 
 	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			c.mockRepoBehaviour(t, mock)
+		ts.Run(c.name, func() {
+			c.mockRepoBehaviour(ts.mock)
 		})
 	}
 }
