@@ -75,53 +75,6 @@ func (ts *UserServiceTestSuite) TestCreateOrUpdateUserIfExists() {
 	}
 }
 
-func (ts *UserServiceTestSuite) TestListUserWithinIds() {
-	randomUsers := []domain.User{
-		createRandomUser(),
-		createRandomUser(),
-		createRandomUser(),
-	}
-
-	cases := []struct {
-		name              string
-		expected          []domain.User
-		err               error
-		mockRepoBehaviour func(mockRepo *mocks.UserRepository)
-	}{
-		{
-			name:     "should return list of users within id(s)",
-			expected: randomUsers,
-			err:      nil,
-			mockRepoBehaviour: func(mockRepo *mocks.UserRepository) {
-				mockRepo.On("List", mock.Anything, mock.Anything).Return(randomUsers, nil)
-			},
-		},
-		{
-			name:     "should return empty list and sql error",
-			expected: []domain.User{},
-			err:      sql.ErrNoRows,
-			mockRepoBehaviour: func(mockRepo *mocks.UserRepository) {
-				mockRepo.On("List", mock.Anything, mock.Anything).Return([]domain.User{}, sql.ErrNoRows)
-			},
-		},
-	}
-
-	for _, c := range cases {
-		ts.Run(c.name, func() {
-			mockRepo := mocks.UserRepository{}
-			service := NewUserService(&mockRepo)
-			c.mockRepoBehaviour(&mockRepo)
-
-			res, err := service.ListUserWithinIds(
-				context.TODO(),
-				[]string{randomUsers[0].ID, randomUsers[1].ID, randomUsers[2].ID})
-			ts.Equal(c.err, err)
-			ts.Equal(c.expected, res)
-			ts.Equal(len(c.expected), len(res))
-		})
-	}
-}
-
 func (ts *UserServiceTestSuite) TestFindUserByID() {
 	randomUsers := createRandomUser()
 

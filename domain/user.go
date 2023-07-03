@@ -11,13 +11,11 @@ const (
 
 type UserRepository interface {
 	Save(ctx context.Context, user User) (User, error)
-	List(ctx context.Context, ids []string) ([]User, error)
 	FindByID(ctx context.Context, userID string) (User, error)
 }
 
 type UserService interface {
 	CreateOrUpdateUserIfExists(ctx context.Context, user User) (User, error)
-	ListUserWithinIds(ctx context.Context, ids []string) ([]User, error)
 	FindUserByID(ctx context.Context, userID string) (User, error)
 }
 

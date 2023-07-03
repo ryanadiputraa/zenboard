@@ -31,14 +31,6 @@ func (s *userService) CreateOrUpdateUserIfExists(ctx context.Context, user domai
 	return
 }
 
-func (s *userService) ListUserWithinIds(ctx context.Context, ids []string) (users []domain.User, err error) {
-	users, err = s.repository.List(ctx, ids)
-	if err != nil {
-		log.Error("fail to get list of users: ", err)
-	}
-	return
-}
-
 func (s *userService) FindUserByID(ctx context.Context, userID string) (user domain.User, err error) {
 	user, err = s.repository.FindByID(ctx, userID)
 	if err != nil {

@@ -10,10 +10,6 @@ ON CONFLICT (id) DO UPDATE SET
   locale = excluded.locale
 RETURNING *;
 
--- name: ListUsers :many
-SELECT * FROM users
-WHERE id = ANY(sqlc.arg(ids)::VARCHAR[]);
-
 -- name: GetUser :one
 SELECT * FROM users
 WHERE id = $1 LIMIT 1;
