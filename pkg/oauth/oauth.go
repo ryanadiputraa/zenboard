@@ -3,8 +3,10 @@ package oauth
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ryanadiputraa/zenboard/domain"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -25,4 +27,18 @@ func OauthConfig() *oauth2.Config {
 func RedirectWithError(ctx *gin.Context, err string) {
 	redirectURL := viper.GetString("OAUTH_REDIRECT_URL")
 	ctx.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("%s?err=%s", redirectURL, err))
+}
+
+func RedirectWithJWTTokens(ctx *gin.Context, tokens domain.Tokens) {
+	baseEedirectURL := viper.GetString("OAUTH_REDIRECT_URL")
+	exp := strconv.FormatInt(tokens.ExpiresIn, 10)
+
+	redirectURL := fmt.Sprintf(
+		"%s?access_token=%s&expires_in=%s&refresh_token=%s",
+		baseEedirectURL,
+		tokens.AccessToken,
+		exp,
+		tokens.RefreshToken,
+	)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }

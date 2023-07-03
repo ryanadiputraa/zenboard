@@ -39,9 +39,18 @@ func (c *oauthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	_, err := c.service.Callback(ctx, req.State, req.Code)
+	userInfo, err := c.service.Callback(ctx, req.State, req.Code)
 	if err != nil {
 		oauth.RedirectWithError(ctx, err.Error())
 		return
 	}
+
+	// TODO: save user info
+
+	tokens, err := c.service.Login(ctx, userInfo.ID)
+	if err != nil {
+		oauth.RedirectWithError(ctx, err.Error())
+		return
+	}
+	oauth.RedirectWithJWTTokens(ctx, tokens)
 }

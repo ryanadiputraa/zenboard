@@ -42,7 +42,7 @@ func (s *userService) ListUserWithinIds(ctx context.Context, ids []string) (user
 func (s *userService) FindUserByID(ctx context.Context, userID string) (user domain.User, err error) {
 	user, err = s.repository.FindByID(ctx, userID)
 	if err != nil {
-		log.Error("fail to find user: ", err)
+		log.Info("fail to find user: ", err)
 	}
 	return
 }
