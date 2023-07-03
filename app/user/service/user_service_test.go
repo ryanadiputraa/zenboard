@@ -24,14 +24,15 @@ func TestUserServiceTestSuite(t *testing.T) {
 
 func createRandomUser() domain.User {
 	return domain.User{
-		ID:         uuid.NewString(),
-		FirstName:  gofakeit.FirstName(),
-		LastName:   gofakeit.LastName(),
-		Email:      gofakeit.Email(),
-		Picture:    gofakeit.ImageURL(120, 120),
-		Locale:     gofakeit.Country(),
-		BoardLimit: domain.DEFAULT_BOARD_LIMIT,
-		CreatedAt:  time.Now(),
+		ID:            uuid.NewString(),
+		FirstName:     gofakeit.FirstName(),
+		LastName:      gofakeit.LastName(),
+		Email:         gofakeit.Email(),
+		Picture:       gofakeit.ImageURL(120, 120),
+		Locale:        gofakeit.Country(),
+		BoardLimit:    domain.DEFAULT_BOARD_LIMIT,
+		CreatedAt:     time.Now(),
+		VerifiedEmail: true,
 	}
 }
 

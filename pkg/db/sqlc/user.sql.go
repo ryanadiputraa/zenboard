@@ -14,25 +14,28 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   id, first_name, last_name, email, picture,
-  locale, board_limit, created_at
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT (id) DO UPDATE SET 
+  locale, board_limit, created_at, verified_email
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT (email) DO UPDATE SET 
   first_name = excluded.first_name,
   last_name = excluded.last_name,
   picture = excluded.picture,
-  locale = excluded.locale
-RETURNING id, first_name, last_name, email, picture, locale, board_limit, created_at
+  locale = excluded.locale,
+  board_limit = excluded.board_limit,
+  verified_email = excluded.verified_email
+RETURNING id, first_name, last_name, email, picture, locale, board_limit, created_at, verified_email
 `
 
 type CreateUserParams struct {
-	ID         string         `json:"id"`
-	FirstName  string         `json:"first_name"`
-	LastName   string         `json:"last_name"`
-	Email      string         `json:"email"`
-	Picture    sql.NullString `json:"picture"`
-	Locale     string         `json:"locale"`
-	BoardLimit int32          `json:"board_limit"`
-	CreatedAt  time.Time      `json:"created_at"`
+	ID            string         `json:"id"`
+	FirstName     string         `json:"first_name"`
+	LastName      string         `json:"last_name"`
+	Email         string         `json:"email"`
+	Picture       sql.NullString `json:"picture"`
+	Locale        string         `json:"locale"`
+	BoardLimit    int32          `json:"board_limit"`
+	CreatedAt     time.Time      `json:"created_at"`
+	VerifiedEmail sql.NullBool   `json:"verified_email"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -45,6 +48,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Locale,
 		arg.BoardLimit,
 		arg.CreatedAt,
+		arg.VerifiedEmail,
 	)
 	var i User
 	err := row.Scan(
@@ -56,12 +60,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Locale,
 		&i.BoardLimit,
 		&i.CreatedAt,
+		&i.VerifiedEmail,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, last_name, email, picture, locale, board_limit, created_at FROM users
+SELECT id, first_name, last_name, email, picture, locale, board_limit, created_at, verified_email FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -77,6 +82,7 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 		&i.Locale,
 		&i.BoardLimit,
 		&i.CreatedAt,
+		&i.VerifiedEmail,
 	)
 	return i, err
 }

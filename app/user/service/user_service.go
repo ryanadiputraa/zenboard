@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/ryanadiputraa/zenboard/domain"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,7 +19,6 @@ func NewUserService(repository domain.UserRepository) domain.UserService {
 }
 
 func (s *userService) CreateOrUpdateUserIfExists(ctx context.Context, user domain.User) (createdUser domain.User, err error) {
-	user.ID = uuid.NewString()
 	user.BoardLimit = domain.DEFAULT_BOARD_LIMIT
 	user.CreatedAt = time.Now()
 

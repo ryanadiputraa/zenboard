@@ -20,12 +20,13 @@ type UserService interface {
 }
 
 type User struct {
-	ID         string    `json:"id"`
-	FirstName  string    `json:"first_name"`
-	LastName   string    `json:"last_name"`
-	Email      string    `json:"email"`
-	Picture    string    `json:"picture"`
-	Locale     string    `json:"locale"`
-	BoardLimit int32     `json:"board_limit"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID            string    `json:"id"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	Email         string    `json:"email"`
+	Picture       string    `json:"picture"`
+	Locale        string    `json:"locale"`
+	BoardLimit    int32     `json:"board_limit"`
+	CreatedAt     time.Time `json:"created_at"`
+	VerifiedEmail bool      `json:"verified_email"`
 }

@@ -20,14 +20,15 @@ func NewUserRepository(db *db.Queries) domain.UserRepository {
 
 func (r *userRepository) Save(ctx context.Context, user domain.User) (createdUser domain.User, err error) {
 	arg := db.CreateUserParams{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		Email:      user.Email,
-		Picture:    sql.NullString{String: user.Picture, Valid: true},
-		Locale:     user.Locale,
-		BoardLimit: user.BoardLimit,
-		CreatedAt:  user.CreatedAt,
+		ID:            user.ID,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		Picture:       sql.NullString{String: user.Picture, Valid: true},
+		Locale:        user.Locale,
+		BoardLimit:    user.BoardLimit,
+		CreatedAt:     user.CreatedAt,
+		VerifiedEmail: sql.NullBool{Bool: user.VerifiedEmail, Valid: true},
 	}
 
 	created, err := r.db.CreateUser(ctx, arg)
@@ -36,14 +37,15 @@ func (r *userRepository) Save(ctx context.Context, user domain.User) (createdUse
 	}
 
 	createdUser = domain.User{
-		ID:         created.ID,
-		FirstName:  created.FirstName,
-		LastName:   created.LastName,
-		Email:      created.Email,
-		Picture:    created.Picture.String,
-		Locale:     created.Locale,
-		BoardLimit: created.BoardLimit,
-		CreatedAt:  created.CreatedAt,
+		ID:            created.ID,
+		FirstName:     created.FirstName,
+		LastName:      created.LastName,
+		Email:         created.Email,
+		Picture:       created.Picture.String,
+		Locale:        created.Locale,
+		BoardLimit:    created.BoardLimit,
+		CreatedAt:     created.CreatedAt,
+		VerifiedEmail: created.VerifiedEmail.Bool,
 	}
 	return
 }
@@ -55,14 +57,15 @@ func (r *userRepository) FindByID(ctx context.Context, userID string) (user doma
 	}
 
 	user = domain.User{
-		ID:         data.ID,
-		FirstName:  data.FirstName,
-		LastName:   data.LastName,
-		Email:      data.Email,
-		Picture:    data.Picture.String,
-		Locale:     data.Locale,
-		BoardLimit: data.BoardLimit,
-		CreatedAt:  data.CreatedAt,
+		ID:            data.ID,
+		FirstName:     data.FirstName,
+		LastName:      data.LastName,
+		Email:         data.Email,
+		Picture:       data.Picture.String,
+		Locale:        data.Locale,
+		BoardLimit:    data.BoardLimit,
+		CreatedAt:     data.CreatedAt,
+		VerifiedEmail: data.VerifiedEmail.Bool,
 	}
 	return
 }

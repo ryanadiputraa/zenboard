@@ -38,14 +38,15 @@ func (ts *UserRepositoryTestSuite) SetupTest() {
 
 func createRandomUser() domain.User {
 	return domain.User{
-		ID:         uuid.NewString(),
-		FirstName:  gofakeit.FirstName(),
-		LastName:   gofakeit.LastName(),
-		Email:      gofakeit.Email(),
-		Picture:    gofakeit.ImageURL(120, 120),
-		Locale:     gofakeit.Country(),
-		BoardLimit: domain.DEFAULT_BOARD_LIMIT,
-		CreatedAt:  time.Now(),
+		ID:            uuid.NewString(),
+		FirstName:     gofakeit.FirstName(),
+		LastName:      gofakeit.LastName(),
+		Email:         gofakeit.Email(),
+		Picture:       gofakeit.ImageURL(120, 120),
+		Locale:        gofakeit.Country(),
+		BoardLimit:    domain.DEFAULT_BOARD_LIMIT,
+		CreatedAt:     time.Now(),
+		VerifiedEmail: true,
 	}
 }
 
@@ -60,8 +61,8 @@ func (ts *UserRepositoryTestSuite) TestSave() {
 				user := createRandomUser()
 
 				mock.ExpectQuery("INSERT INTO users").WillReturnRows(
-					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at"}).
-						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt),
+					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at", "verified_email"}).
+						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt, user.VerifiedEmail),
 				)
 
 				created, err := ts.repository.Save(context.TODO(), user)
@@ -76,6 +77,7 @@ func (ts *UserRepositoryTestSuite) TestSave() {
 				ts.Equal(user.Locale, created.Locale)
 				ts.Equal(user.BoardLimit, created.BoardLimit)
 				ts.NotZero(created.CreatedAt)
+				ts.Equal(user.VerifiedEmail, created.VerifiedEmail)
 			},
 		},
 		{
@@ -110,8 +112,8 @@ func (ts *UserRepositoryTestSuite) TestFindByID() {
 				user := createRandomUser()
 
 				mock.ExpectQuery("SELECT (.+) FROM users").WillReturnRows(
-					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at"}).
-						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt),
+					sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "picture", "locale", "board_limit", "created_at", "verified_email"}).
+						AddRow(user.ID, user.FirstName, user.LastName, user.Email, user.Picture, user.Locale, user.BoardLimit, user.CreatedAt, user.VerifiedEmail),
 				)
 
 				data, err := ts.repository.FindByID(context.TODO(), user.ID)
@@ -126,6 +128,7 @@ func (ts *UserRepositoryTestSuite) TestFindByID() {
 				ts.Equal(user.Locale, data.Locale)
 				ts.Equal(user.BoardLimit, data.BoardLimit)
 				ts.NotZero(data.CreatedAt)
+				ts.Equal(user.VerifiedEmail, data.VerifiedEmail)
 			},
 		},
 		{
