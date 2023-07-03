@@ -44,7 +44,7 @@ func (s *oauthService) Callback(ctx context.Context, state, code string) (userIn
 		log.Error("fail to read user info response body: ", err)
 		return userInfo, errors.New("fail to retrieve user info")
 	}
-	log.Trace("oauth login: ", string(body))
+	log.Info("oauth login: ", string(body))
 
 	json.Unmarshal(body, &userInfo)
 	if err != nil {

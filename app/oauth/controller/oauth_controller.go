@@ -6,12 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ryanadiputraa/zenboard/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/oauth"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
 type oauthController struct {
-	service domain.OauthService
+	service     domain.OauthService
+	userService domain.UserService
 }
 
 type callbackReq struct {
@@ -19,8 +21,11 @@ type callbackReq struct {
 	Code  string `form:"code" binding:"required"`
 }
 
-func NewOauthController(rg *gin.RouterGroup, service domain.OauthService) {
-	c := oauthController{service: service}
+func NewOauthController(rg *gin.RouterGroup, service domain.OauthService, userService domain.UserService) {
+	c := oauthController{
+		service:     service,
+		userService: userService,
+	}
 
 	rg.GET("/login/google", c.LoginGoogle)
 	rg.GET("/callback", c.Callback)
@@ -36,6 +41,7 @@ func (c *oauthController) Callback(ctx *gin.Context) {
 	var req callbackReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		oauth.RedirectWithError(ctx, err.Error())
+		log.Error("fail to bind oauth redirect url: ", err)
 		return
 	}
 
@@ -45,9 +51,21 @@ func (c *oauthController) Callback(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: save user info
+	user, err := c.userService.CreateOrUpdateUserIfExists(ctx, domain.User{
+		ID:            userInfo.ID,
+		FirstName:     userInfo.FirstName,
+		LastName:      userInfo.LastName,
+		Email:         userInfo.Email,
+		Picture:       userInfo.Picture,
+		Locale:        userInfo.Locale,
+		VerifiedEmail: userInfo.VerifiedEmail,
+	})
+	if err != nil {
+		oauth.RedirectWithError(ctx, err.Error())
+		return
+	}
 
-	tokens, err := c.service.Login(ctx, userInfo.ID)
+	tokens, err := c.service.Login(ctx, user.ID)
 	if err != nil {
 		oauth.RedirectWithError(ctx, err.Error())
 		return

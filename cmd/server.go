@@ -36,7 +36,7 @@ func ServeHTTP() {
 
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService()
-	_oauthController.NewOauthController(oauth, oauthSerivce)
+	_oauthController.NewOauthController(oauth, oauthSerivce, userService)
 
 	r.Run(fmt.Sprintf(":%s", viper.GetString("PORT")))
 }
