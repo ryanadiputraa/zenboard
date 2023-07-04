@@ -75,7 +75,7 @@ func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims
 		return claims, err
 	}
 
-	exp := jwtClaim["exp"].(int64)
+	exp := jwtClaim["exp"].(float64)
 	claims = domain.JWTClaims{
 		Sub: jwtClaim["sub"].(string),
 		Exp: exp,

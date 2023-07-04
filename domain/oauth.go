@@ -25,6 +25,6 @@ type Tokens struct {
 }
 
 type JWTClaims struct {
-	Sub string `json:"sub"`
-	Exp int64  `json:"exp"`
+	Sub string  `json:"sub"`
+	Exp float64 `json:"exp"`
 }
