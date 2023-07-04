@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -22,7 +23,7 @@ func ServeHTTP() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r.Use(gin.Recovery())
+	r.Use(customRecovery())
 	r.Use(gin.Logger())
 	r.Use(CORSMiddleware())
 
@@ -39,4 +40,18 @@ func ServeHTTP() {
 	_oauthController.NewOauthController(oauth, oauthSerivce, userService)
 
 	r.Run(fmt.Sprintf(":%s", viper.GetString("PORT")))
+}
+
+func customRecovery() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"error": "something went wrong, please try again later",
+				})
+			}
+		}()
+
+		ctx.Next()
+	}
 }
