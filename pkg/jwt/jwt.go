@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func GenerateAccessToken(userID any) (tokens domain.Tokens, err error) {
+func GenerateAccessToken(userID any) (tokens domain.JWTToken, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(viper.GetDuration("JWT_EXPIRES_IN")).Unix(),
@@ -31,7 +31,7 @@ func GenerateAccessToken(userID any) (tokens domain.Tokens, err error) {
 		return
 	}
 
-	tokens = domain.Tokens{
+	tokens = domain.JWTToken{
 		AccessToken:  tokenString,
 		ExpiresIn:    time.Now().Add(viper.GetDuration("JWT_EXPIRES_IN")).Unix(),
 		RefreshToken: refreshTokenString,

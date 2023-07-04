@@ -55,7 +55,7 @@ func (s *oauthService) Callback(ctx context.Context, state, code string) (userIn
 	return
 }
 
-func (s *oauthService) Login(ctx context.Context, userID any) (tokens domain.Tokens, err error) {
+func (s *oauthService) Login(ctx context.Context, userID any) (tokens domain.JWTToken, err error) {
 	tokens, err = jwt.GenerateAccessToken(userID)
 	if err != nil {
 		log.Error("fail to sign in user: ", err)
@@ -63,7 +63,7 @@ func (s *oauthService) Login(ctx context.Context, userID any) (tokens domain.Tok
 	return
 }
 
-func (s *oauthService) RefreshAccessToken(ctx context.Context, refreshToken string) (tokens domain.Tokens, err error) {
+func (s *oauthService) RefreshAccessToken(ctx context.Context, refreshToken string) (tokens domain.JWTToken, err error) {
 	claims, err := jwt.ParseJWTClaims(refreshToken, true)
 	if err != nil {
 		log.Warn("fail to parse refresh token: ", err)

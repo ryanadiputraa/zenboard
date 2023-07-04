@@ -29,7 +29,7 @@ func RedirectWithError(ctx *gin.Context, err string) {
 	ctx.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("%s?err=%s", redirectURL, err))
 }
 
-func RedirectWithJWTTokens(ctx *gin.Context, tokens domain.Tokens) {
+func RedirectWithJWTTokens(ctx *gin.Context, tokens domain.JWTToken) {
 	baseEedirectURL := viper.GetString("OAUTH_REDIRECT_URL")
 	exp := strconv.FormatInt(tokens.ExpiresIn, 10)
 

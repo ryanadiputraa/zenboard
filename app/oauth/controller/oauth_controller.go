@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/pkg/httpres"
+	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 	"github.com/ryanadiputraa/zenboard/pkg/oauth"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -29,6 +31,7 @@ func NewOauthController(rg *gin.RouterGroup, service domain.OauthService, userSe
 
 	rg.GET("/login/google", c.LoginGoogle)
 	rg.GET("/callback", c.Callback)
+	rg.POST("/refresh", c.RefreshToken)
 }
 
 func (c *oauthController) LoginGoogle(ctx *gin.Context) {
@@ -71,4 +74,20 @@ func (c *oauthController) Callback(ctx *gin.Context) {
 		return
 	}
 	oauth.RedirectWithJWTTokens(ctx, tokens)
+}
+
+func (c *oauthController) RefreshToken(ctx *gin.Context) {
+	refreshToken, err := jwt.ExtractTokenFromAuthorizationHeader(ctx)
+	if err != nil {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	token, err := c.service.RefreshAccessToken(ctx, refreshToken)
+	if err != nil {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	httpres.HTTPSuccesResponse(ctx, http.StatusOK, token)
 }

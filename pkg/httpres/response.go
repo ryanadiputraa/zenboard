@@ -7,7 +7,10 @@ import (
 )
 
 var (
-	errCode = map[string]int{}
+	errCode = map[string]int{
+		"missing authorization header": http.StatusForbidden,
+		"invalid token format":         http.StatusForbidden,
+	}
 )
 
 func HTTPSuccesResponse(ctx *gin.Context, code int, data any) {
