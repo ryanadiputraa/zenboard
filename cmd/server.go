@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	_userController "github.com/ryanadiputraa/zenboard/app/user/controller"
@@ -46,6 +48,8 @@ func customRecovery() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
+				log.Error(err)
+				debug.PrintStack()
 				ctx.JSON(http.StatusInternalServerError, gin.H{
 					"error": "something went wrong, please try again later",
 				})

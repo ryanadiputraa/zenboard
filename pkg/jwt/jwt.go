@@ -58,7 +58,7 @@ func ExtractTokenFromAuthorizationHeader(ctx *gin.Context) (token string, err er
 func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims, err error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return claims, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		var secret string
@@ -70,9 +70,13 @@ func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims
 		return []byte(secret), nil
 	})
 
+	if token == nil {
+		return
+	}
+
 	jwtClaim, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return claims, err
+		return
 	}
 
 	exp := jwtClaim["exp"].(float64)
@@ -81,7 +85,7 @@ func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims
 		Exp: exp,
 	}
 
-	return claims, nil
+	return
 }
 
 func ExtractUserID(ctx *gin.Context) (string, error) {
