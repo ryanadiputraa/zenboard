@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	log "github.com/sirupsen/logrus"
 )
 

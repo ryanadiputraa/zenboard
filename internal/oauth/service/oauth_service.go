@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/ryanadiputraa/zenboard/config"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 	"github.com/ryanadiputraa/zenboard/pkg/oauth"
 	log "github.com/sirupsen/logrus"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 )
 

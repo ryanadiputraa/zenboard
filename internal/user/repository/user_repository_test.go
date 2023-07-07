@@ -9,7 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 	"github.com/stretchr/testify/suite"
 )

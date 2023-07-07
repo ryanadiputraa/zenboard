@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ryanadiputraa/zenboard/config"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/httpres"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 	"github.com/ryanadiputraa/zenboard/pkg/oauth"

@@ -1,16 +1,16 @@
 package server
 
 import (
-	_userController "github.com/ryanadiputraa/zenboard/app/user/controller"
-	_userRepository "github.com/ryanadiputraa/zenboard/app/user/repository"
-	_userService "github.com/ryanadiputraa/zenboard/app/user/service"
+	_userController "github.com/ryanadiputraa/zenboard/internal/user/controller"
+	_userRepository "github.com/ryanadiputraa/zenboard/internal/user/repository"
+	_userService "github.com/ryanadiputraa/zenboard/internal/user/service"
 	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 
-	_boardRepository "github.com/ryanadiputraa/zenboard/app/board/repository"
-	_boardService "github.com/ryanadiputraa/zenboard/app/board/service"
+	_boardRepository "github.com/ryanadiputraa/zenboard/internal/board/repository"
+	_boardService "github.com/ryanadiputraa/zenboard/internal/board/service"
 
-	_oauthController "github.com/ryanadiputraa/zenboard/app/oauth/controller"
-	_oauthService "github.com/ryanadiputraa/zenboard/app/oauth/service"
+	_oauthController "github.com/ryanadiputraa/zenboard/internal/oauth/controller"
+	_oauthService "github.com/ryanadiputraa/zenboard/internal/oauth/service"
 )
 
 func (s *Server) MapHandlers() {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ryanadiputraa/zenboard/config"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

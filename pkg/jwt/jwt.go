@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/ryanadiputraa/zenboard/config"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 )
 
 func GenerateAccessToken(conf config.JWT, userID any) (tokens domain.JWTToken, err error) {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
-	"github.com/ryanadiputraa/zenboard/domain"
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
