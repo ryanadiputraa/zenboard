@@ -13,6 +13,9 @@ import (
 	_userRepository "github.com/ryanadiputraa/zenboard/app/user/repository"
 	_userService "github.com/ryanadiputraa/zenboard/app/user/service"
 
+	_boardRepository "github.com/ryanadiputraa/zenboard/app/board/repository"
+	_boardService "github.com/ryanadiputraa/zenboard/app/board/service"
+
 	_oauthController "github.com/ryanadiputraa/zenboard/app/oauth/controller"
 	_oauthService "github.com/ryanadiputraa/zenboard/app/oauth/service"
 )
@@ -37,9 +40,13 @@ func ServeHTTP() {
 	userService := _userService.NewUserService(userRepository)
 	_userController.NewUserController(api, userService)
 
+	// board
+	boardRepository := _boardRepository.NewBoardRepository(DB, Tx)
+	boardService := _boardService.NewBoardService(boardRepository)
+
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService()
-	_oauthController.NewOauthController(oauth, oauthSerivce, userService)
+	_oauthController.NewOauthController(oauth, oauthSerivce, userService, boardService)
 
 	r.Run(fmt.Sprintf(":%s", viper.GetString("PORT")))
 }

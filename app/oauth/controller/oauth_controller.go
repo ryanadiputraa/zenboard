@@ -14,8 +14,9 @@ import (
 )
 
 type oauthController struct {
-	service     domain.OauthService
-	userService domain.UserService
+	service      domain.OauthService
+	userService  domain.UserService
+	boardService domain.BoardService
 }
 
 type callbackReq struct {
@@ -23,10 +24,16 @@ type callbackReq struct {
 	Code  string `form:"code" binding:"required"`
 }
 
-func NewOauthController(rg *gin.RouterGroup, service domain.OauthService, userService domain.UserService) {
+func NewOauthController(
+	rg *gin.RouterGroup,
+	service domain.OauthService,
+	userService domain.UserService,
+	boardService domain.BoardService,
+) {
 	c := oauthController{
-		service:     service,
-		userService: userService,
+		service:      service,
+		userService:  userService,
+		boardService: boardService,
 	}
 
 	rg.GET("/login/google", c.LoginGoogle)
@@ -67,6 +74,8 @@ func (c *oauthController) Callback(ctx *gin.Context) {
 		oauth.RedirectWithError(ctx, err.Error())
 		return
 	}
+
+	c.boardService.InitBoard(ctx, user.ID)
 
 	tokens, err := c.service.Login(ctx, user.ID)
 	if err != nil {

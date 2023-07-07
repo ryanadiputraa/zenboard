@@ -12,6 +12,7 @@ import (
 
 var (
 	DB *db.Queries
+	Tx db.Tx
 )
 
 func init() {
@@ -23,6 +24,7 @@ func init() {
 		log.Fatalf("fail to open db connection: %s", err)
 	}
 	DB = db.New(conn)
+	Tx = db.NewTx(conn)
 }
 
 func setupLoger() {

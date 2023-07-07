@@ -9,8 +9,11 @@ import (
 )
 
 type Querier interface {
+	CreateBoard(ctx context.Context, arg CreateBoardParams) (Board, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetBoardByOwnerID(ctx context.Context, ownerID string) (Board, error)
 	GetUser(ctx context.Context, id string) (User, error)
+	InitTaskStatus(ctx context.Context, arg InitTaskStatusParams) ([]TaskStatus, error)
 }
 
 var _ Querier = (*Queries)(nil)
