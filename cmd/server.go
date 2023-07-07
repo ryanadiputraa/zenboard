@@ -1,13 +1,18 @@
 package cmd
 
 import (
-	"fmt"
+	"database/sql"
 	"net/http"
 	"runtime/debug"
 
+	_ "github.com/lib/pq"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+
+	"github.com/ryanadiputraa/zenboard/config"
+	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
+	"github.com/ryanadiputraa/zenboard/pkg/logger"
 
 	_userController "github.com/ryanadiputraa/zenboard/app/user/controller"
 	_userRepository "github.com/ryanadiputraa/zenboard/app/user/repository"
@@ -21,10 +26,24 @@ import (
 )
 
 func ServeHTTP() {
+	logger.SetupLoger()
+	conf, err := config.LoadConfig("./config/config")
+	if err != nil {
+		log.Fatal("fail to load config: ", err)
+	}
+
+	conn, err := sql.Open(conf.Database.Driver, conf.Database.DSN)
+	if err != nil {
+		log.Fatalf("fail to open db connection: %s", err)
+	}
+
+	DB := db.New(conn)
+	Tx := db.NewTx(conn)
+
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
 
-	if viper.GetString("ENV") == "prod" {
+	if conf.Server.Env == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -38,17 +57,17 @@ func ServeHTTP() {
 	// user
 	userRepository := _userRepository.NewUserRepository(DB)
 	userService := _userService.NewUserService(userRepository)
-	_userController.NewUserController(api, userService)
+	_userController.NewUserController(conf, api, userService)
 
 	// board
 	boardRepository := _boardRepository.NewBoardRepository(DB, Tx)
 	boardService := _boardService.NewBoardService(boardRepository)
 
 	// oauth
-	oauthSerivce := _oauthService.NewOauthService()
-	_oauthController.NewOauthController(oauth, oauthSerivce, userService, boardService)
+	oauthSerivce := _oauthService.NewOauthService(conf)
+	_oauthController.NewOauthController(conf, oauth, oauthSerivce, userService, boardService)
 
-	r.Run(fmt.Sprintf(":%s", viper.GetString("PORT")))
+	r.Run(conf.Server.Port)
 }
 
 func customRecovery() gin.HandlerFunc {

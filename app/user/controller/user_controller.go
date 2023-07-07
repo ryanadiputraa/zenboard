@@ -4,12 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ryanadiputraa/zenboard/config"
 	"github.com/ryanadiputraa/zenboard/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/httpres"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 )
 
 type userController struct {
+	conf    *config.Config
 	service domain.UserService
 }
 
@@ -17,8 +19,8 @@ type findByIDReq struct {
 	ID string `uri:"id" binding:"required"`
 }
 
-func NewUserController(rg *gin.RouterGroup, service domain.UserService) {
-	c := userController{service: service}
+func NewUserController(conf *config.Config, rg *gin.RouterGroup, service domain.UserService) {
+	c := userController{conf: conf, service: service}
 	r := rg.Group("/users")
 
 	r.GET("/", c.GetUserInfo)
@@ -26,7 +28,7 @@ func NewUserController(rg *gin.RouterGroup, service domain.UserService) {
 }
 
 func (c *userController) GetUserInfo(ctx *gin.Context) {
-	userID, err := jwt.ExtractUserID(ctx)
+	userID, err := jwt.ExtractUserID(ctx, c.conf.JWT)
 	if err != nil {
 		httpres.HTTPErrorResponse(ctx, err)
 		return

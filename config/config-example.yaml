@@ -1,0 +1,20 @@
+Server:
+  Env: "dev" # dev | prod
+  Port: ":8080"
+
+Database:
+  Driver: "postgres"
+  DSN: "postgresql://root:root@localhost:5432/zenboard?sslmode=disable"
+
+Oauth:
+  ClientId: ""
+  ClientSecret: ""
+  CallbackURL: "http://localhost:8080/oauth/callback"
+  RedirectURL: "http://localhost:3000/auth"
+  State: ""
+
+JWT:
+  Secret: ""
+  ExpiresIn: "1h0m0s"
+  RefreshSecret: ""
+  RefreshExpiresIn: "720h0m0s"

@@ -8,32 +8,32 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/ryanadiputraa/zenboard/config"
 	"github.com/ryanadiputraa/zenboard/domain"
-	"github.com/spf13/viper"
 )
 
-func GenerateAccessToken(userID any) (tokens domain.JWTToken, err error) {
+func GenerateAccessToken(conf config.JWT, userID any) (tokens domain.JWTToken, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
-		"exp": time.Now().Add(viper.GetDuration("JWT_EXPIRES_IN")).Unix(),
+		"exp": time.Now().Add(conf.ExpiresIn).Unix(),
 	})
-	tokenString, err := token.SignedString([]byte(viper.GetString("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(conf.Secret))
 	if err != nil {
 		return
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
-		"exp": time.Now().Add(viper.GetDuration("JWT_REFRESH_EXPIRES_IN")).Unix(),
+		"exp": time.Now().Add(conf.RefreshExpiresIn).Unix(),
 	})
-	refreshTokenString, err := refreshToken.SignedString([]byte(viper.GetString("JWT_REFRESH_SECRET")))
+	refreshTokenString, err := refreshToken.SignedString([]byte(conf.RefreshSecret))
 	if err != nil {
 		return
 	}
 
 	tokens = domain.JWTToken{
 		AccessToken:  tokenString,
-		ExpiresIn:    time.Now().Add(viper.GetDuration("JWT_EXPIRES_IN")).Unix(),
+		ExpiresIn:    time.Now().Add(conf.ExpiresIn).Unix(),
 		RefreshToken: refreshTokenString,
 	}
 
@@ -55,7 +55,7 @@ func ExtractTokenFromAuthorizationHeader(ctx *gin.Context) (token string, err er
 	return
 }
 
-func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims, err error) {
+func ParseJWTClaims(conf config.JWT, tokenString string, isRefresh bool) (claims domain.JWTClaims, err error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -63,9 +63,9 @@ func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims
 
 		var secret string
 		if !isRefresh {
-			secret = viper.GetString("JWT_SECRET")
+			secret = conf.Secret
 		} else {
-			secret = viper.GetString("JWT_REFRESH_SECRET")
+			secret = conf.RefreshSecret
 		}
 		return []byte(secret), nil
 	})
@@ -88,12 +88,12 @@ func ParseJWTClaims(tokenString string, isRefresh bool) (claims domain.JWTClaims
 	return
 }
 
-func ExtractUserID(ctx *gin.Context) (string, error) {
+func ExtractUserID(ctx *gin.Context, conf config.JWT) (string, error) {
 	token, err := ExtractTokenFromAuthorizationHeader(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	claim, err := ParseJWTClaims(token, false)
+	claim, err := ParseJWTClaims(conf, token, false)
 	return claim.Sub, err
 }

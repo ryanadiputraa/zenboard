@@ -7,26 +7,28 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/ryanadiputraa/zenboard/config"
 	"github.com/ryanadiputraa/zenboard/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 	"github.com/ryanadiputraa/zenboard/pkg/oauth"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-type oauthService struct{}
+type oauthService struct {
+	conf *config.Config
+}
 
-func NewOauthService() domain.OauthService {
-	return &oauthService{}
+func NewOauthService(conf *config.Config) domain.OauthService {
+	return &oauthService{conf: conf}
 }
 
 func (s *oauthService) Callback(ctx context.Context, state, code string) (userInfo domain.UserInfo, err error) {
-	if state != viper.GetString("OAUTH_STATE") {
+	if state != s.conf.Oauth.State {
 		log.Warn("invalid oauth state: ", state)
 		return userInfo, errors.New("invalid oauth state")
 	}
 
-	token, err := oauth.OauthConfig().Exchange(context.Background(), code)
+	token, err := oauth.OauthConfig(s.conf.Oauth).Exchange(context.Background(), code)
 	if err != nil {
 		log.Error("fail to exchange oauth code with token: ", err)
 		return userInfo, errors.New("fail to retrieve user token")
@@ -56,7 +58,7 @@ func (s *oauthService) Callback(ctx context.Context, state, code string) (userIn
 }
 
 func (s *oauthService) Login(ctx context.Context, userID any) (tokens domain.JWTToken, err error) {
-	tokens, err = jwt.GenerateAccessToken(userID)
+	tokens, err = jwt.GenerateAccessToken(s.conf.JWT, userID)
 	if err != nil {
 		log.Error("fail to sign in user: ", err)
 	}
@@ -64,13 +66,13 @@ func (s *oauthService) Login(ctx context.Context, userID any) (tokens domain.JWT
 }
 
 func (s *oauthService) RefreshAccessToken(ctx context.Context, refreshToken string) (tokens domain.JWTToken, err error) {
-	claims, err := jwt.ParseJWTClaims(refreshToken, true)
+	claims, err := jwt.ParseJWTClaims(s.conf.JWT, refreshToken, true)
 	if err != nil {
 		log.Warn("fail to parse refresh token: ", err)
 		return
 	}
 
-	tokens, err = jwt.GenerateAccessToken(claims.Sub)
+	tokens, err = jwt.GenerateAccessToken(s.conf.JWT, claims.Sub)
 	if err != nil {
 		log.Error("fail refresh access token: ", err)
 	}
