@@ -14,11 +14,11 @@ type BoardService interface {
 }
 
 type Board struct {
-	ID          string    `json:"id"`
-	ProjectName string    `json:"project_name"`
-	Picture     string    `json:"picture"`
-	OwnerID     string    `json:"owner_id"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          string    `json:"id" db:"id"`
+	ProjectName string    `json:"project_name" db:"project_name"`
+	Picture     string    `json:"picture" db:"picture"`
+	OwnerID     string    `json:"owner_id" db:"owner_id"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 }
 
 type InitBoardDTO struct {

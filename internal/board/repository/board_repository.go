@@ -4,75 +4,61 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/ryanadiputraa/zenboard/internal/domain"
-	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 )
 
 type boardRepository struct {
-	db *db.Queries
-	tx db.Tx
+	db *sqlx.DB
 }
 
-func NewBoardRepository(db *db.Queries, tx db.Tx) domain.BoardRepository {
+func NewBoardRepository(db *sqlx.DB) domain.BoardRepository {
 	return &boardRepository{
 		db: db,
-		tx: tx,
 	}
 }
 
-func (r *boardRepository) Init(
-	ctx context.Context,
-	initBoard domain.InitBoardDTO,
-	task1, task2, task3 domain.InitTaskDTO,
+func (r *boardRepository) Init(ctx context.Context, initBoard domain.InitBoardDTO, task1, task2, task3 domain.InitTaskDTO,
 ) (board domain.Board, err error) {
-	err = r.tx.ExecTx(ctx, func(q *db.Queries) (err error) {
-		user, err := q.GetBoardByOwnerID(ctx, initBoard.OwnerID)
-		if err != nil && err != sql.ErrNoRows {
-			return
-		}
-		if user.ID != "" {
-			return
-		}
+	tx := r.db.MustBeginTx(ctx, &sql.TxOptions{})
 
-		arg1 := db.CreateBoardParams{
-			ID:          initBoard.ID,
-			ProjectName: initBoard.ProjectName,
-			OwnerID:     initBoard.OwnerID,
-			CreatedAt:   initBoard.CreatedAt,
-		}
-
-		created, err := q.CreateBoard(ctx, arg1)
-		if err != nil {
-			return err
-		}
-
-		arg2 := db.InitTaskStatusParams{
-			BoardID: created.ID,
-			ID:      task1.ID,
-			Order:   int32(task1.Order),
-			Name:    task1.Name,
-			ID_2:    task2.ID,
-			Order_2: int32(task2.Order),
-			Name_2:  task2.Name,
-			ID_3:    task3.ID,
-			Order_3: int32(task3.Order),
-			Name_3:  task3.Name,
-		}
-
-		_, err = q.InitTaskStatus(ctx, arg2)
-		if err != nil {
-			return
-		}
-
-		board = domain.Board{
-			ID:          created.ID,
-			ProjectName: created.ProjectName,
-			OwnerID:     created.OwnerID,
-			CreatedAt:   created.CreatedAt,
-		}
-
+	// check if user board already exists
+	var existingBoard domain.Board
+	err = tx.Get(&existingBoard, "SELECT id FROM boards WHERE owner_id = $1", initBoard.OwnerID)
+	if err != nil && err != sql.ErrNoRows {
+		tx.Rollback()
 		return
-	})
+	}
+	if existingBoard.ID != "" {
+		tx.Rollback()
+		return
+	}
 
+	// init user board
+	if err = tx.QueryRowx(`INSERT INTO boards ( id, project_name, picture, owner_id, created_at
+		) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+		initBoard.ID, initBoard.ProjectName, "", initBoard.OwnerID, initBoard.CreatedAt,
+	).StructScan(&board); err != nil {
+		tx.Rollback()
+		return
+	}
+
+	// init default board tasks
+	if _, err = tx.Exec(`INSERT INTO task_status ( id, "order", name, board_id
+		) VALUES
+		($2, $3, $4, $1),
+		($5, $6, $7, $1),
+		($8, $9, $10, $1)
+		RETURNING *`,
+		initBoard.ID,
+		task1.ID, task1.Order, task1.Name,
+		task2.ID, task2.Order, task2.Name,
+		task3.ID, task3.Order, task3.Name,
+	); err != nil {
+		tx.Rollback()
+		return
+	}
+
+	err = tx.Commit()
 	return
 }

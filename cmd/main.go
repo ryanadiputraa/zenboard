@@ -18,12 +18,12 @@ func main() {
 		log.Fatal("fail to load config: ", err)
 	}
 
-	conn, err := db.NewConn(conf)
+	db, err := db.NewDBConn(conf.Database)
 	if err != nil {
 		log.Fatalf("fail to open db connection: %s", err)
 	}
 
-	s := server.NewServer(conf, conn)
+	s := server.NewServer(conf, db)
 	if err = s.Run(); err != nil {
 		log.Fatal("fail to run server: ", err)
 	}

@@ -1,11 +1,11 @@
 package server
 
 import (
-	"database/sql"
 	"net/http"
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/ryanadiputraa/zenboard/config"
 	"github.com/ryanadiputraa/zenboard/internal/middleware"
 	log "github.com/sirupsen/logrus"
@@ -14,10 +14,10 @@ import (
 type Server struct {
 	gin  *gin.Engine
 	conf *config.Config
-	db   *sql.DB
+	db   *sqlx.DB
 }
 
-func NewServer(conf *config.Config, db *sql.DB) *Server {
+func NewServer(conf *config.Config, db *sqlx.DB) *Server {
 	return &Server{
 		gin:  gin.Default(),
 		conf: conf,

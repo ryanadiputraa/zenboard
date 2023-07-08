@@ -9,8 +9,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/ryanadiputraa/zenboard/internal/domain"
-	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -29,7 +29,7 @@ func (ts *UserRepositoryTestSuite) SetupTest() {
 	if err != nil {
 		ts.FailNow("fail to create mock db: %s", err)
 	}
-	mockDB := db.New(conn)
+	mockDB := sqlx.NewDb(conn, "sqlmock")
 	repository := NewUserRepository(mockDB)
 
 	ts.mock = mock

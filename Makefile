@@ -13,13 +13,10 @@ migrateup:
 migratedown:
 	migrate -path pkg/db/migration -database "postgresql://root:root@localhost:5432/zenboard?sslmode=disable" -verbose down
 
-sqlc:
-	sqlc generate
-
 test:
 	go test -v -cover ./...
 
 server:
 	go run cmd/main.go
 
-.PHONY: postgres createdb dropdb server
+.PHONY: postgres createdb dropdb migrateup migratedown test server

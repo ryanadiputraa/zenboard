@@ -2,70 +2,41 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/ryanadiputraa/zenboard/internal/domain"
-	db "github.com/ryanadiputraa/zenboard/pkg/db/sqlc"
 )
 
 type userRepository struct {
-	db *db.Queries
+	db *sqlx.DB
 }
 
-func NewUserRepository(db *db.Queries) domain.UserRepository {
+func NewUserRepository(db *sqlx.DB) domain.UserRepository {
 	return &userRepository{
 		db: db,
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user domain.User) (createdUser domain.User, err error) {
-	arg := db.CreateUserParams{
-		ID:            user.ID,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Email:         user.Email,
-		Picture:       sql.NullString{String: user.Picture, Valid: true},
-		Locale:        user.Locale,
-		BoardLimit:    user.BoardLimit,
-		CreatedAt:     user.CreatedAt,
-		VerifiedEmail: sql.NullBool{Bool: user.VerifiedEmail, Valid: true},
-	}
-
-	created, err := r.db.CreateUser(ctx, arg)
-	if err != nil {
-		return
-	}
-
-	createdUser = domain.User{
-		ID:            created.ID,
-		FirstName:     created.FirstName,
-		LastName:      created.LastName,
-		Email:         created.Email,
-		Picture:       created.Picture.String,
-		Locale:        created.Locale,
-		BoardLimit:    created.BoardLimit,
-		CreatedAt:     created.CreatedAt,
-		VerifiedEmail: created.VerifiedEmail.Bool,
-	}
+func (r *userRepository) Save(ctx context.Context, arg domain.User) (user domain.User, err error) {
+	err = r.db.QueryRowxContext(ctx, `INSERT INTO users (
+			id, first_name, last_name, email, picture,
+			locale, board_limit, created_at, verified_email
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		ON CONFLICT (email) DO UPDATE SET 
+			first_name = excluded.first_name,
+			last_name = excluded.last_name,
+			picture = excluded.picture,
+			locale = excluded.locale,
+			board_limit = excluded.board_limit,
+			verified_email = excluded.verified_email
+		RETURNING *`,
+		arg.ID, arg.FirstName, arg.LastName, arg.Email, arg.Picture,
+		arg.Locale, arg.BoardLimit, arg.CreatedAt, arg.VerifiedEmail,
+	).StructScan(&user)
 	return
 }
 
 func (r *userRepository) FindByID(ctx context.Context, userID string) (user domain.User, err error) {
-	data, err := r.db.GetUser(ctx, userID)
-	if err != nil {
-		return
-	}
-
-	user = domain.User{
-		ID:            data.ID,
-		FirstName:     data.FirstName,
-		LastName:      data.LastName,
-		Email:         data.Email,
-		Picture:       data.Picture.String,
-		Locale:        data.Locale,
-		BoardLimit:    data.BoardLimit,
-		CreatedAt:     data.CreatedAt,
-		VerifiedEmail: data.VerifiedEmail.Bool,
-	}
+	err = r.db.Get(&user, "SELECT * FROM users WHERE id = $1 LIMIT 1", userID)
 	return
 }

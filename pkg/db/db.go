@@ -1,8 +1,7 @@
 package db
 
 import (
-	"database/sql"
-
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
 	"github.com/ryanadiputraa/zenboard/config"
@@ -15,8 +14,8 @@ const (
 	connMaxIdleTime = 20
 )
 
-func NewConn(conf *config.Config) (db *sql.DB, err error) {
-	db, err = sql.Open(conf.Database.Driver, conf.Database.DSN)
+func NewDBConn(conf config.Database) (db *sqlx.DB, err error) {
+	db, err = sqlx.Connect(conf.Driver, conf.DSN)
 	if err != nil {
 		return
 	}
@@ -26,6 +25,5 @@ func NewConn(conf *config.Config) (db *sql.DB, err error) {
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxIdleTime(connMaxIdleTime)
 
-	err = db.Ping()
 	return
 }

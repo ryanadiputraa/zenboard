@@ -28,7 +28,7 @@ func (s *oauthService) Callback(ctx context.Context, state, code string) (userIn
 		return userInfo, errors.New("invalid oauth state")
 	}
 
-	token, err := oauth.OauthConfig(s.conf.Oauth).Exchange(context.Background(), code)
+	token, err := oauth.OauthConfig(s.conf.Oauth).Exchange(ctx, code)
 	if err != nil {
 		log.Error("fail to exchange oauth code with token: ", err)
 		return userInfo, errors.New("fail to retrieve user token")
