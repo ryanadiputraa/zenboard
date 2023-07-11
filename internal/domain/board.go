@@ -7,10 +7,12 @@ import (
 
 type BoardRepository interface {
 	Init(ctx context.Context, board InitBoardDTO, task1, task2, task3 InitTaskDTO) (Board, error)
+	FetchByOwnerID(ctx context.Context, ownerID string) ([]Board, error)
 }
 
 type BoardService interface {
 	InitBoard(ctx context.Context, userID string) error
+	GetUserBoards(ctx context.Context, userID string) ([]Board, error)
 }
 
 type Board struct {

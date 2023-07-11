@@ -5,6 +5,7 @@ import (
 	_userRepository "github.com/ryanadiputraa/zenboard/internal/user/repository"
 	_userService "github.com/ryanadiputraa/zenboard/internal/user/service"
 
+	_boardController "github.com/ryanadiputraa/zenboard/internal/board/controller"
 	_boardRepository "github.com/ryanadiputraa/zenboard/internal/board/repository"
 	_boardService "github.com/ryanadiputraa/zenboard/internal/board/service"
 
@@ -24,6 +25,7 @@ func (s *Server) MapHandlers() {
 	// board
 	boardRepository := _boardRepository.NewBoardRepository(s.db)
 	boardService := _boardService.NewBoardService(boardRepository)
+	_boardController.NewBoardController(s.conf, api, boardService)
 
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService(s.conf)

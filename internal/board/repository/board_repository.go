@@ -62,3 +62,8 @@ func (r *boardRepository) Init(ctx context.Context, initBoard domain.InitBoardDT
 	err = tx.Commit()
 	return
 }
+
+func (r *boardRepository) FetchByOwnerID(ctx context.Context, ownerID string) (boards []domain.Board, err error) {
+	err = r.db.Select(&boards, `SELECT * FROM boards WHERE owner_id = $1 ORDER BY created_at DESC`, ownerID)
+	return
+}

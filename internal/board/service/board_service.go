@@ -62,3 +62,11 @@ func (s *boardService) InitBoard(ctx context.Context, userID string) (err error)
 
 	return
 }
+
+func (s *boardService) GetUserBoards(ctx context.Context, userID string) (boards []domain.Board, err error) {
+	boards, err = s.repository.FetchByOwnerID(ctx, userID)
+	if err != nil {
+		log.Warn("fail to fetch user boards: ", err)
+	}
+	return
+}
