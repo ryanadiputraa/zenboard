@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -65,8 +66,12 @@ func (s *boardService) InitBoard(ctx context.Context, userID string) (err error)
 
 func (s *boardService) GetUserBoards(ctx context.Context, userID string) (boards []domain.Board, err error) {
 	boards, err = s.repository.FetchByOwnerID(ctx, userID)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Warn("fail to fetch user boards: ", err)
 	}
+	if boards == nil {
+		boards = []domain.Board{}
+	}
+
 	return
 }
