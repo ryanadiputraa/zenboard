@@ -24,7 +24,7 @@ func (r *boardRepository) Init(ctx context.Context, initBoard domain.InitBoardDT
 
 	// check if user board already exists
 	var existingBoard domain.Board
-	err = tx.Get(&existingBoard, "SELECT id FROM boards WHERE owner_id = $1", initBoard.OwnerID)
+	err = tx.Get(&existingBoard, "SELECT id FROM boards WHERE owner_id = $1 LIMIT 1", initBoard.OwnerID)
 	if err != nil && err != sql.ErrNoRows {
 		tx.Rollback()
 		return
