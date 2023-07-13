@@ -9,6 +9,10 @@ import (
 	_boardRepository "github.com/ryanadiputraa/zenboard/internal/board/repository"
 	_boardService "github.com/ryanadiputraa/zenboard/internal/board/service"
 
+	_taskController "github.com/ryanadiputraa/zenboard/internal/task/controller"
+	_taskRepository "github.com/ryanadiputraa/zenboard/internal/task/repository"
+	_taskService "github.com/ryanadiputraa/zenboard/internal/task/service"
+
 	_oauthController "github.com/ryanadiputraa/zenboard/internal/oauth/controller"
 	_oauthService "github.com/ryanadiputraa/zenboard/internal/oauth/service"
 )
@@ -26,6 +30,11 @@ func (s *Server) MapHandlers() {
 	boardRepository := _boardRepository.NewBoardRepository(s.db)
 	boardService := _boardService.NewBoardService(boardRepository)
 	_boardController.NewBoardController(s.conf, api, boardService)
+
+	// task
+	taskRepository := _taskRepository.NewTaskRepository(s.db)
+	taskService := _taskService.NewTaskService(taskRepository)
+	_taskController.NewTaskController(s.conf, api, taskService)
 
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService(s.conf)
