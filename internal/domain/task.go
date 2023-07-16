@@ -10,27 +10,27 @@ type TaskRepository interface {
 }
 
 type TaskService interface {
-	ListBoardTasks(ctx context.Context, boardID string) ([]TaskStatus, error)
+	ListBoardTasks(ctx context.Context, boardID string) ([]Task, error)
 }
 
-type Task struct {
+type TaskItem struct {
 	ID        string `json:"id" db:"id"`
 	Name      string `json:"name" db:"name"`
 	Order     int    `json:"order" db:"order"`
 	Tag       string `json:"tag" db:"tag"`
 	Assignee  string `json:"assignee" db:"assignee"`
-	BoardID   string `json:"board_id" db:"board_id"`
-	StatusID  string `json:"status_id" db:"status_id"`
+	BoardID   string `json:"-" db:"board_id"`
+	StatusID  string `json:"-" db:"status_id"`
 	CreatedAt string `json:"created_at" db:"created_at"`
 	UpdatedAt string `json:"updated_at" db:"updated_at"`
 }
 
-type TaskStatus struct {
-	ID      string `json:"id" db:"id"`
-	Order   int    `json:"order" db:"order"`
-	Name    string `json:"name" db:"name"`
-	BoardID string `json:"board_id" db:"board_id"`
-	Tasks   []Task `json:"tasks"`
+type Task struct {
+	ID       string     `json:"id" db:"id"`
+	Order    int        `json:"order" db:"order"`
+	Name     string     `json:"name" db:"name"`
+	BoardID  string     `json:"board_id" db:"board_id"`
+	TaskItem []TaskItem `json:"tasks"`
 }
 
 type TaskDAO struct {
@@ -38,9 +38,9 @@ type TaskDAO struct {
 	Order     int            `db:"order"`
 	Name      string         `db:"name"`
 	BoardID   string         `db:"board_id"`
-	TaskID    sql.NullString `db:"task_id"`
-	TaskName  sql.NullString `db:"task_name"`
-	TaskOrder sql.NullInt16  `db:"task_order"`
+	TaskID    sql.NullString `db:"item_id"`
+	TaskName  sql.NullString `db:"item_name"`
+	TaskOrder sql.NullInt16  `db:"item_order"`
 	Tag       sql.NullString `db:"tag"`
 	Assignee  sql.NullString `db:"assignee"`
 	StatusID  sql.NullString `db:"status_id"`
@@ -48,19 +48,19 @@ type TaskDAO struct {
 	UpdatedAt sql.NullString `db:"updated_at"`
 }
 
-func GenerateTaskList(daoList []TaskDAO) (tasks []TaskStatus) {
+func GenerateTaskList(daoList []TaskDAO) (tasks []Task) {
 	idx := 0
 	taskMap := make(map[string]bool)
 
 	for _, l := range daoList {
 		if _, exists := taskMap[l.ID]; !exists {
-			var ts TaskStatus
+			var ts Task
 			ts.ID = l.ID
 			ts.Order = l.Order
 			ts.Name = l.Name
 			ts.BoardID = l.BoardID
 
-			ts.Tasks = []Task{}
+			ts.TaskItem = []TaskItem{}
 			tasks = append(tasks, ts)
 			taskMap[ts.ID] = true
 		}
@@ -69,7 +69,7 @@ func GenerateTaskList(daoList []TaskDAO) (tasks []TaskStatus) {
 			continue
 		}
 
-		var t Task
+		var t TaskItem
 		t.ID = l.TaskID.String
 		t.Name = l.TaskName.String
 		t.Order = int(l.TaskOrder.Int16)
@@ -79,11 +79,11 @@ func GenerateTaskList(daoList []TaskDAO) (tasks []TaskStatus) {
 		t.CreatedAt = l.CreatedAt.String
 		t.UpdatedAt = l.UpdatedAt.String
 
-		tasks[idx].Tasks = append(tasks[idx].Tasks, t)
+		tasks[idx].TaskItem = append(tasks[idx].TaskItem, t)
 	}
 
 	if tasks == nil {
-		tasks = []TaskStatus{}
+		tasks = []Task{}
 	}
 
 	return
