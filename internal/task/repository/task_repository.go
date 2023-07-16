@@ -24,7 +24,7 @@ func (r *taskRepository) FetchTasks(ctx context.Context, boardID string) (tasks 
 		FROM task_status AS ts
 		LEFT JOIN tasks AS t ON t.status_id = ts.id
 		WHERE ts.board_id = $1
-		ORDER BY ts.order ASC
+		ORDER BY ts.order ASC, t.order ASC
 		`, boardID)
 	if err != nil {
 		return
