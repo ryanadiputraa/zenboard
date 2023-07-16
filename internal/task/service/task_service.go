@@ -19,14 +19,12 @@ func NewTaskService(repository domain.TaskRepository) domain.TaskService {
 }
 
 func (s *taskService) ListBoardTasks(ctx context.Context, boardID string) (tasks []domain.TaskStatus, err error) {
-	tasks, err = s.repository.FetchTasks(ctx, boardID)
+	list, err := s.repository.FetchTasks(ctx, boardID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("fail to fetch task list", err)
+		log.Error("fail to fetch task list: ", err)
 	}
 
-	if tasks == nil {
-		tasks = []domain.TaskStatus{}
-	}
+	tasks = domain.GenerateTaskList(list)
 
 	return
 }
