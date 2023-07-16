@@ -7,10 +7,11 @@ import (
 
 type TaskRepository interface {
 	FetchTasks(ctx context.Context, boardID string) ([]TaskDAO, error)
+	// AddTask(ctx context.Context)
 }
 
 type TaskService interface {
-	ListBoardTasks(ctx context.Context, boardID string) ([]Task, error)
+	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
 }
 
 type TaskItem struct {
@@ -26,10 +27,17 @@ type TaskItem struct {
 }
 
 type Task struct {
-	ID       string     `json:"id" db:"id"`
-	Order    int        `json:"order" db:"order"`
-	Name     string     `json:"name" db:"name"`
-	BoardID  string     `json:"board_id" db:"board_id"`
+	ID      string `json:"id" db:"id"`
+	Order   int    `json:"order" db:"order"`
+	Name    string `json:"name" db:"name"`
+	BoardID string `json:"board_id" db:"board_id"`
+}
+
+type TaskDTO struct {
+	ID       string     `json:"id"`
+	Order    int        `json:"order"`
+	Name     string     `json:"name"`
+	BoardID  string     `json:"board_id"`
 	TaskItem []TaskItem `json:"tasks"`
 }
 
@@ -48,13 +56,13 @@ type TaskDAO struct {
 	UpdatedAt sql.NullString `db:"updated_at"`
 }
 
-func GenerateTaskList(daoList []TaskDAO) (tasks []Task) {
+func GenerateTaskList(daoList []TaskDAO) (tasks []TaskDTO) {
 	idx := 0
 	taskMap := make(map[string]bool)
 
 	for _, l := range daoList {
 		if _, exists := taskMap[l.ID]; !exists {
-			var ts Task
+			var ts TaskDTO
 			ts.ID = l.ID
 			ts.Order = l.Order
 			ts.Name = l.Name
@@ -83,7 +91,7 @@ func GenerateTaskList(daoList []TaskDAO) (tasks []Task) {
 	}
 
 	if tasks == nil {
-		tasks = []Task{}
+		tasks = []TaskDTO{}
 	}
 
 	return

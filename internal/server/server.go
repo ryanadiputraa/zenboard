@@ -32,7 +32,6 @@ func (s *Server) Run() error {
 
 	s.gin.SetTrustedProxies(nil)
 	s.gin.Use(customRecovery())
-	s.gin.Use(gin.Logger())
 	s.gin.Use(middleware.CORSMiddleware())
 
 	s.MapHandlers()
