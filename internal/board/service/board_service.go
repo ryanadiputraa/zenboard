@@ -75,3 +75,16 @@ func (s *boardService) GetUserBoards(ctx context.Context, userID string) (boards
 
 	return
 }
+
+func (s *boardService) CheckIsUserAuthorized(ctx context.Context, boardID, userID string) (isAuthorized bool, err error) {
+	id, err := s.repository.GetUserIDInBoard(ctx, boardID, userID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Error("fail to get user id in board: ", err)
+		}
+		return
+	}
+
+	isAuthorized = len(id) > 0
+	return
+}

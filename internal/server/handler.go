@@ -34,7 +34,7 @@ func (s *Server) MapHandlers() {
 	// task
 	taskRepository := _taskRepository.NewTaskRepository(s.db)
 	taskService := _taskService.NewTaskService(taskRepository)
-	_taskController.NewTaskController(s.conf, api, taskService)
+	_taskController.NewTaskController(s.conf, api, taskService, boardService)
 
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService(s.conf)

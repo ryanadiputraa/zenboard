@@ -6,12 +6,13 @@ import (
 )
 
 type TaskRepository interface {
-	FetchTasks(ctx context.Context, boardID string) ([]TaskDAO, error)
-	// AddTask(ctx context.Context)
+	ListByBoardID(ctx context.Context, boardID string) ([]TaskDAO, error)
+	Create(ctx context.Context, task Task) (Task, error)
 }
 
 type TaskService interface {
 	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
+	AddBoardTask(ctx context.Context, boardID, taskName string) (Task, error)
 }
 
 type TaskItem struct {
@@ -37,7 +38,7 @@ type TaskDTO struct {
 	ID       string     `json:"id"`
 	Order    int        `json:"order"`
 	Name     string     `json:"name"`
-	BoardID  string     `json:"board_id"`
+	BoardID  string     `json:"-"`
 	TaskItem []TaskItem `json:"tasks"`
 }
 

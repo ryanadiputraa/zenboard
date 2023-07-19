@@ -67,3 +67,8 @@ func (r *boardRepository) FetchByOwnerID(ctx context.Context, ownerID string) (b
 	err = r.db.Select(&boards, `SELECT * FROM boards WHERE owner_id = $1 ORDER BY created_at DESC`, ownerID)
 	return
 }
+
+func (r *boardRepository) GetUserIDInBoard(ctx context.Context, boardID, userID string) (memberID string, err error) {
+	err = r.db.Get(&memberID, `SELECT owner_id FROM boards WHERE id = $1 AND owner_id = $2`, boardID, userID)
+	return
+}
