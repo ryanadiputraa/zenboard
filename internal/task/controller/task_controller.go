@@ -19,6 +19,11 @@ type CreateTaskReq struct {
 	TaskName string `json:"task_name" binding:"required"`
 }
 
+type DeleteTaskReq struct {
+	BoardID string `form:"board_id" binding:"required"`
+	TaskID  string `form:"task_id" binding:"required"`
+}
+
 type taskController struct {
 	conf         *config.Config
 	service      domain.TaskService
@@ -34,6 +39,7 @@ func NewTaskController(conf *config.Config, rg *gin.RouterGroup, service domain.
 	r := rg.Group("/tasks")
 	r.GET("/", c.ListTask)
 	r.POST("/", c.CreateTask)
+	r.DELETE("/", c.DeleteTask)
 }
 
 func (c *taskController) ListTask(ctx *gin.Context) {
@@ -90,4 +96,32 @@ func (c *taskController) CreateTask(ctx *gin.Context) {
 	}
 
 	httpres.HTTPSuccesResponse(ctx, http.StatusOK, task)
+}
+
+func (c *taskController) DeleteTask(ctx *gin.Context) {
+	userID, err := jwt.ExtractUserID(ctx, c.conf.JWT)
+	if err != nil {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	var deleteTaskReq DeleteTaskReq
+	if err := ctx.ShouldBindQuery(&deleteTaskReq); err != nil {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	isAuthorized, err := c.boardService.CheckIsUserAuthorized(ctx, deleteTaskReq.BoardID, userID)
+	if err != nil || !isAuthorized {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	err = c.service.DeleteTask(ctx, deleteTaskReq.TaskID)
+	if err != nil {
+		httpres.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	httpres.HTTPSuccesResponse(ctx, http.StatusOK, nil)
 }

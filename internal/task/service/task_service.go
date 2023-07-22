@@ -50,3 +50,18 @@ func (s *taskService) AddBoardTask(ctx context.Context, boardID, taskName string
 
 	return
 }
+
+func (s *taskService) DeleteTask(ctx context.Context, taskID string) error {
+	task, err := s.repository.DeleteByID(ctx, taskID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Warn("invalid task id, trying to delete: ", err)
+		} else {
+			log.Error("fail to delete task: ", err)
+		}
+	}
+
+	log.Info("deleted task: ", task.ID)
+
+	return err
+}

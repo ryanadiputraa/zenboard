@@ -36,3 +36,8 @@ func (r *taskRepository) Create(ctx context.Context, task domain.Task) (created 
 	`, task.ID, task.Name, task.BoardID).StructScan(&created)
 	return
 }
+
+func (r *taskRepository) DeleteByID(ctx context.Context, taskID string) (task domain.Task, err error) {
+	err = r.db.QueryRowxContext(ctx, "DELETE FROM tasks WHERE id = $1 RETURNING *", taskID).StructScan(&task)
+	return
+}

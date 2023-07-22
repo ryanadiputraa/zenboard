@@ -8,11 +8,13 @@ import (
 type TaskRepository interface {
 	ListByBoardID(ctx context.Context, boardID string) ([]TaskDAO, error)
 	Create(ctx context.Context, task Task) (Task, error)
+	DeleteByID(ctx context.Context, taskID string) (Task, error)
 }
 
 type TaskService interface {
 	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
 	AddBoardTask(ctx context.Context, boardID, taskName string) (Task, error)
+	DeleteTask(ctx context.Context, taskID string) error
 }
 
 type TaskItem struct {
@@ -47,9 +49,9 @@ type TaskDAO struct {
 	Order     int            `db:"order"`
 	Name      string         `db:"name"`
 	BoardID   string         `db:"board_id"`
-	TaskID    sql.NullString `db:"item_id"`
-	TaskName  sql.NullString `db:"item_name"`
-	TaskOrder sql.NullInt16  `db:"item_order"`
+	ItemID    sql.NullString `db:"item_id"`
+	ItemName  sql.NullString `db:"item_name"`
+	ItemOrder sql.NullInt16  `db:"item_order"`
 	Tag       sql.NullString `db:"tag"`
 	Assignee  sql.NullString `db:"assignee"`
 	StatusID  sql.NullString `db:"status_id"`
@@ -74,14 +76,14 @@ func GenerateTaskList(daoList []TaskDAO) (tasks []TaskDTO) {
 			taskMap[ts.ID] = true
 		}
 
-		if !l.TaskID.Valid {
+		if !l.ItemID.Valid {
 			continue
 		}
 
 		var t TaskItem
-		t.ID = l.TaskID.String
-		t.Name = l.TaskName.String
-		t.Order = int(l.TaskOrder.Int16)
+		t.ID = l.ItemID.String
+		t.Name = l.ItemName.String
+		t.Order = int(l.ItemOrder.Int16)
 		t.Tag = l.Tag.String
 		t.Assignee = l.Assignee.String
 		t.StatusID = l.StatusID.String
