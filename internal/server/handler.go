@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/gin-gonic/gin"
 	_userController "github.com/ryanadiputraa/zenboard/internal/user/controller"
 	_userRepository "github.com/ryanadiputraa/zenboard/internal/user/repository"
 	_userService "github.com/ryanadiputraa/zenboard/internal/user/service"
@@ -21,9 +22,6 @@ func (s *Server) MapHandlers() {
 	api := s.gin.Group("/api")
 	oauth := s.gin.Group("/oauth")
 
-	// websocket
-	s.gin.GET("/ws", s.ws.HandleConnection)
-
 	// user
 	userRepository := _userRepository.NewUserRepository(s.db)
 	userService := _userService.NewUserService(userRepository)
@@ -42,4 +40,12 @@ func (s *Server) MapHandlers() {
 	// oauth
 	oauthSerivce := _oauthService.NewOauthService(s.conf)
 	_oauthController.NewOauthController(s.conf, oauth, oauthSerivce, userService, boardService)
+
+	wsService := wsService{
+		boardService: boardService,
+	}
+	// websocket
+	s.gin.GET("/ws", func(ctx *gin.Context) {
+		s.ws.HandleConnection(ctx, s.conf.JWT, wsService)
+	})
 }
