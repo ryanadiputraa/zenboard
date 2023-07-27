@@ -9,19 +9,25 @@ import (
 	"github.com/ryanadiputraa/zenboard/config"
 	"github.com/ryanadiputraa/zenboard/internal/middleware"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/websocket"
 )
 
 type Server struct {
 	gin  *gin.Engine
 	conf *config.Config
 	db   *sqlx.DB
+	ws   *WebSocketServer
 }
 
 func NewServer(conf *config.Config, db *sqlx.DB) *Server {
+	ws := &WebSocketServer{
+		conns: make(map[string]map[*websocket.Conn]bool),
+	}
 	return &Server{
 		gin:  gin.Default(),
 		conf: conf,
 		db:   db,
+		ws:   ws,
 	}
 }
 

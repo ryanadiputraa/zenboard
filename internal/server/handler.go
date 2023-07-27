@@ -21,6 +21,9 @@ func (s *Server) MapHandlers() {
 	api := s.gin.Group("/api")
 	oauth := s.gin.Group("/oauth")
 
+	// websocket
+	s.gin.GET("/ws", s.ws.HandleConnection)
+
 	// user
 	userRepository := _userRepository.NewUserRepository(s.db)
 	userService := _userService.NewUserService(userRepository)
