@@ -43,6 +43,7 @@ func (s *Server) MapHandlers() {
 
 	wsService := wsService{
 		boardService: boardService,
+		taskService:  taskService,
 	}
 	// websocket
 	s.gin.GET("/ws", func(ctx *gin.Context) {

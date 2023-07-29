@@ -28,9 +28,10 @@ type socket struct {
 
 type wsService struct {
 	boardService domain.BoardService
+	taskService  domain.TaskService
 }
 
-type webSocketMessage struct {
+type webSocketEventMessage struct {
 	Key  string `json:"key"`
 	Data any    `json:"data"`
 }
@@ -80,7 +81,7 @@ func (ws *WebSocketServer) ReadLoop(socket *socket, service wsService) {
 		}
 
 		msg := buf[:n]
-		var message webSocketMessage
+		var message webSocketEventMessage
 		json.Unmarshal(msg, &message)
 		ws.HandleEvent(socket, service, message)
 	}
