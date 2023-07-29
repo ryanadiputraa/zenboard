@@ -2,9 +2,6 @@ package server
 
 import (
 	"encoding/json"
-
-	"github.com/ryanadiputraa/zenboard/pkg/jwt"
-	"github.com/sirupsen/logrus"
 )
 
 type authPayload struct {
@@ -26,15 +23,10 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 	case "auth":
 		data := convertMsgData[authPayload](msg.Data)
 		ws.conns[socket.roomID][socket.conn] = data.AccessToken
-
-		logrus.Debug(socket.roomID)
+		socket.conn.Write([]byte("user authenticated"))
 
 	case "delete_task":
-		userID, err := jwt.ExtractUserID(socket.ctx, socket.conf)
-		if err != nil {
-			socket.conn.Write([]byte(err.Error()))
-			return
-		}
+		userID := ws.conns[socket.roomID][socket.conn]
 		isAuthorized, err := service.boardService.CheckIsUserAuthorized(socket.ctx, socket.roomID, userID)
 		if err != nil || !isAuthorized {
 			socket.conn.Write([]byte(err.Error()))
