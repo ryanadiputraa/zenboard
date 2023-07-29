@@ -4,7 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
+	"github.com/sirupsen/logrus"
 )
+
+type authPayload struct {
+	AccessToken string `json:"access_token"`
+}
 
 type deleteTaskPayload struct {
 	TaskID string `json:"task_id"`
@@ -18,6 +23,12 @@ func convertMsgData[T any](data any) (target T) {
 
 func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg webSocketEventMessage) {
 	switch msg.Key {
+	case "auth":
+		data := convertMsgData[authPayload](msg.Data)
+		ws.conns[socket.roomID][socket.conn] = data.AccessToken
+
+		logrus.Debug(socket.roomID)
+
 	case "delete_task":
 		userID, err := jwt.ExtractUserID(socket.ctx, socket.conf)
 		if err != nil {

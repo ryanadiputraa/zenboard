@@ -15,7 +15,7 @@ import (
 )
 
 type WebSocketServer struct {
-	conns map[string]map[*websocket.Conn]bool
+	conns map[string]map[*websocket.Conn]string
 	sync.Mutex
 }
 
@@ -47,11 +47,11 @@ func (ws *WebSocketServer) HandleConnection(
 		ws.Lock()
 		_, ok := ws.conns[boardID]
 		if !ok {
-			ws.conns[boardID] = map[*websocket.Conn]bool{
-				c: true,
+			ws.conns[boardID] = map[*websocket.Conn]string{
+				c: "",
 			}
 		} else {
-			ws.conns[boardID][c] = true
+			ws.conns[boardID][c] = ""
 		}
 		ws.Unlock()
 		log.Info(fmt.Sprintf("new connection on (%v) : %v", boardID, c))

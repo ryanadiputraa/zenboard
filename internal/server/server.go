@@ -21,7 +21,7 @@ type Server struct {
 
 func NewServer(conf *config.Config, db *sqlx.DB) *Server {
 	ws := &WebSocketServer{
-		conns: make(map[string]map[*websocket.Conn]bool),
+		conns: make(map[string]map[*websocket.Conn]string),
 	}
 	return &Server{
 		gin:  gin.Default(),
