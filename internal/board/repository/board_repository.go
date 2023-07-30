@@ -44,7 +44,7 @@ func (r *boardRepository) Init(ctx context.Context, initBoard domain.InitBoardDT
 	}
 
 	// init default board tasks
-	if _, err = tx.Exec(`INSERT INTO task_status ( id, "order", name, board_id
+	if _, err = tx.Exec(`INSERT INTO tasks ( id, "order", name, board_id
 		) VALUES
 		($2, $3, $4, $1),
 		($5, $6, $7, $1),

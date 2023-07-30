@@ -95,7 +95,7 @@ func (ts *BoardRepositoryTestSuite) TestInit() {
 							initBoard.ID, initBoard.ProjectName, "", initBoard.OwnerID, initBoard.CreatedAt,
 						),
 					)
-				mock.ExpectExec(`INSERT INTO task_status`).WillReturnResult(
+				mock.ExpectExec(`INSERT INTO tasks`).WillReturnResult(
 					sqlmock.NewResult(1, 3),
 				)
 				mock.ExpectCommit()
@@ -156,7 +156,7 @@ func (ts *BoardRepositoryTestSuite) TestInit() {
 							initBoard.ID, initBoard.ProjectName, "", initBoard.OwnerID, initBoard.CreatedAt,
 						),
 					)
-				mock.ExpectExec(`INSERT INTO task_status`).WillReturnError(sql.ErrTxDone)
+				mock.ExpectExec(`INSERT INTO tasks`).WillReturnError(sql.ErrTxDone)
 				mock.ExpectRollback()
 			},
 		},

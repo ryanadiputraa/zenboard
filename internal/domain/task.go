@@ -18,15 +18,15 @@ type TaskService interface {
 }
 
 type TaskItem struct {
-	ID        string `json:"id" db:"id"`
-	Name      string `json:"name" db:"name"`
-	Order     int    `json:"order" db:"order"`
-	Tag       string `json:"tag" db:"tag"`
-	Assignee  string `json:"assignee" db:"assignee"`
-	BoardID   string `json:"-" db:"board_id"`
-	StatusID  string `json:"-" db:"status_id"`
-	CreatedAt string `json:"created_at" db:"created_at"`
-	UpdatedAt string `json:"updated_at" db:"updated_at"`
+	ID          string `json:"id" db:"id"`
+	Description string `json:"description" db:"description"`
+	Order       int    `json:"order" db:"order"`
+	Tag         string `json:"tag" db:"tag"`
+	Assignee    string `json:"assignee" db:"assignee"`
+	BoardID     string `json:"-" db:"board_id"`
+	StatusID    string `json:"-" db:"status_id"`
+	CreatedAt   string `json:"created_at" db:"created_at"`
+	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 
 type Task struct {
@@ -45,18 +45,18 @@ type TaskDTO struct {
 }
 
 type TaskDAO struct {
-	ID        string         `db:"id"`
-	Order     int            `db:"order"`
-	Name      string         `db:"name"`
-	BoardID   string         `db:"board_id"`
-	ItemID    sql.NullString `db:"item_id"`
-	ItemName  sql.NullString `db:"item_name"`
-	ItemOrder sql.NullInt16  `db:"item_order"`
-	Tag       sql.NullString `db:"tag"`
-	Assignee  sql.NullString `db:"assignee"`
-	StatusID  sql.NullString `db:"status_id"`
-	CreatedAt sql.NullString `db:"created_at"`
-	UpdatedAt sql.NullString `db:"updated_at"`
+	ID              string         `db:"id"`
+	Order           int            `db:"order"`
+	Name            string         `db:"name"`
+	BoardID         string         `db:"board_id"`
+	ItemID          sql.NullString `db:"item_id"`
+	ItemDescription sql.NullString `db:"item_description"`
+	ItemOrder       sql.NullInt16  `db:"item_order"`
+	Tag             sql.NullString `db:"tag"`
+	Assignee        sql.NullString `db:"assignee"`
+	StatusID        sql.NullString `db:"status_id"`
+	CreatedAt       sql.NullString `db:"created_at"`
+	UpdatedAt       sql.NullString `db:"updated_at"`
 }
 
 func GenerateTaskList(daoList []TaskDAO) (tasks []TaskDTO) {
@@ -82,7 +82,7 @@ func GenerateTaskList(daoList []TaskDAO) (tasks []TaskDTO) {
 
 		var t TaskItem
 		t.ID = l.ItemID.String
-		t.Name = l.ItemName.String
+		t.Description = l.ItemDescription.String
 		t.Order = int(l.ItemOrder.Int16)
 		t.Tag = l.Tag.String
 		t.Assignee = l.Assignee.String

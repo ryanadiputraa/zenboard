@@ -20,7 +20,7 @@ func NewTaskRepository(db *sqlx.DB) domain.TaskRepository {
 func (r *taskRepository) ListByBoardID(ctx context.Context, boardID string) (tasks []domain.TaskDAO, err error) {
 	err = r.db.Select(&tasks, `
 		SELECT tasks.id, tasks.order, tasks.name, tasks.board_id,
-		item.id AS item_id, item.order AS item_order, item.name AS item_name, item.tag, item.assignee, item.created_at, item.updated_at
+		item.id AS item_id, item.order AS item_order, item.description AS item_description, item.tag, item.assignee, item.created_at, item.updated_at
 		FROM tasks LEFT JOIN task_items AS item ON item.status_id = tasks.id
 		WHERE tasks.board_id = $1
 		ORDER BY tasks.order ASC, item.order ASC
