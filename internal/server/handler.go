@@ -41,11 +41,11 @@ func (s *Server) MapHandlers() {
 	oauthSerivce := _oauthService.NewOauthService(s.conf)
 	_oauthController.NewOauthController(s.conf, oauth, oauthSerivce, userService, boardService)
 
+	// websocket
 	wsService := wsService{
 		boardService: boardService,
 		taskService:  taskService,
 	}
-	// websocket
 	s.gin.GET("/ws", func(ctx *gin.Context) {
 		s.ws.HandleConnection(ctx, s.conf.JWT, wsService)
 	})

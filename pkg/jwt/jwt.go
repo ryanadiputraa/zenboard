@@ -97,3 +97,8 @@ func ExtractUserID(ctx *gin.Context, conf config.JWT) (string, error) {
 	claim, err := ParseJWTClaims(conf, token, false)
 	return claim.Sub, err
 }
+
+func ExtractUserIDFromJWTToken(conf config.JWT, token string) (string, error) {
+	claim, err := ParseJWTClaims(conf, token, false)
+	return claim.Sub, err
+}
