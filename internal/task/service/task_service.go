@@ -29,17 +29,24 @@ func (s *taskService) ListBoardTasks(ctx context.Context, boardID string) (tasks
 	return
 }
 
-func (s *taskService) AddBoardTask(ctx context.Context, boardID, taskName string) (created domain.Task, err error) {
+func (s *taskService) AddBoardTask(ctx context.Context, boardID, taskName string) (created domain.TaskDTO, err error) {
 	task := domain.Task{
 		ID:      uuid.NewString(),
 		Name:    taskName,
 		BoardID: boardID,
 	}
 
-	created, err = s.repository.Create(ctx, task)
+	data, err := s.repository.Create(ctx, task)
 	if err != nil {
 		log.Error("fail to create task: ", err)
 		return
+	}
+	created = domain.TaskDTO{
+		ID:       data.ID,
+		BoardID:  data.BoardID,
+		Name:     data.Name,
+		Order:    data.Order,
+		TaskItem: []domain.TaskItem{},
 	}
 	log.WithFields(log.Fields{
 		"id":        created.ID,

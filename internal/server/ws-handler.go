@@ -2,7 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 
+	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
 	"golang.org/x/net/websocket"
 )
@@ -16,6 +18,11 @@ type socketResponse struct {
 
 type authPayload struct {
 	AccessToken string `json:"access_token"`
+}
+
+type createTaskPayload struct {
+	BoardID  string `json:"board_id"`
+	TaskName string `json:"task_name"`
 }
 
 type deleteTaskPayload struct {
@@ -41,6 +48,19 @@ func (ws *WebSocketServer) broadcast(roomID string, c *websocket.Conn, key strin
 	}
 }
 
+func (ws *WebSocketServer) validateUser(socket *socket, boardService domain.BoardService) (err error) {
+	token := ws.conns[socket.roomID][socket.conn]
+	userID, err := jwt.ExtractUserIDFromJWTToken(socket.conf, token)
+	if err != nil {
+		return
+	}
+	isAuthorized, err := boardService.CheckIsUserAuthorized(socket.ctx, socket.roomID, userID)
+	if !isAuthorized {
+		err = errors.New("forbidden")
+	}
+	return
+}
+
 func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg webSocketEventMessage) {
 	switch msg.Key {
 	case "auth":
@@ -48,18 +68,29 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 		ws.conns[socket.roomID][socket.conn] = data.AccessToken
 		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "user authenticated", nil)
 
-	case "delete_task":
-		token := ws.conns[socket.roomID][socket.conn]
-		userID, err := jwt.ExtractUserIDFromJWTToken(socket.conf, token)
+	case "create_task":
+		err := ws.validateUser(socket, service.boardService)
 		if err != nil {
 			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
 			return
 		}
+		data := convertMsgData[createTaskPayload](msg.Data)
+		if data.BoardID == "" || data.TaskName == "" {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			return
+		}
 
-		isAuthorized, err := service.boardService.CheckIsUserAuthorized(socket.ctx, socket.roomID, userID)
-		if err != nil || !isAuthorized {
+		task, err := service.taskService.AddBoardTask(socket.ctx, data.BoardID, data.TaskName)
+		if err != nil {
 			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
 			return
+		}
+		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task created", task)
+
+	case "delete_task":
+		err := ws.validateUser(socket, service.boardService)
+		if err != nil {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
 		}
 
 		data := convertMsgData[deleteTaskPayload](msg.Data)

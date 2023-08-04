@@ -13,7 +13,7 @@ type TaskRepository interface {
 
 type TaskService interface {
 	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
-	AddBoardTask(ctx context.Context, boardID, taskName string) (Task, error)
+	AddBoardTask(ctx context.Context, boardID, taskName string) (TaskDTO, error)
 	DeleteTask(ctx context.Context, taskID string) error
 }
 
