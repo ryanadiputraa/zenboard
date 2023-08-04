@@ -31,7 +31,7 @@ func (r *taskRepository) ListByBoardID(ctx context.Context, boardID string) (tas
 func (r *taskRepository) Create(ctx context.Context, task domain.Task) (created domain.Task, err error) {
 	err = r.db.QueryRowxContext(ctx, `
 		INSERT INTO tasks (id, "order", name, board_id)
-		VALUES ($1, (SELECT COUNT(*) + 1 FROM tasks WHERE board_id = $3), $2, $3)
+		VALUES ($1, (SELECT tasks."order" + 1 FROM tasks WHERE board_id = $3 ORDER BY tasks."order" DESC LIMIT 1), $2, $3)
 		RETURNING *
 	`, task.ID, task.Name, task.BoardID).StructScan(&created)
 	return
