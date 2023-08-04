@@ -25,7 +25,6 @@ type changeProjectNamePayload struct {
 }
 
 type createTaskPayload struct {
-	BoardID  string `json:"board_id"`
 	TaskName string `json:"task_name"`
 }
 
@@ -97,12 +96,12 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 			return
 		}
 		data := convertMsgData[createTaskPayload](msg.Data)
-		if data.BoardID == "" || data.TaskName == "" {
+		if data.TaskName == "" {
 			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
 			return
 		}
 
-		task, err := service.taskService.AddBoardTask(socket.ctx, data.BoardID, data.TaskName)
+		task, err := service.taskService.AddBoardTask(socket.ctx, socket.roomID, data.TaskName)
 		if err != nil {
 			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
 			return
