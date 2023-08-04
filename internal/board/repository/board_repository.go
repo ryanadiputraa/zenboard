@@ -72,3 +72,12 @@ func (r *boardRepository) GetUserIDInBoard(ctx context.Context, boardID, userID 
 	err = r.db.Get(&memberID, `SELECT owner_id FROM boards WHERE id = $1 AND owner_id = $2`, boardID, userID)
 	return
 }
+
+func (r *boardRepository) UpdateBoardName(ctx context.Context, boardID, name string) (board domain.Board, err error) {
+	err = r.db.QueryRowxContext(
+		ctx,
+		"UPDATE boards SET project_name = $2 WHERE id = $1 RETURNING *",
+		boardID, name,
+	).StructScan(&board)
+	return
+}

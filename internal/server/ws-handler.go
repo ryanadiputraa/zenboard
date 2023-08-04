@@ -20,6 +20,10 @@ type authPayload struct {
 	AccessToken string `json:"access_token"`
 }
 
+type changeProjectNamePayload struct {
+	Name string `json:"name"`
+}
+
 type createTaskPayload struct {
 	BoardID  string `json:"board_id"`
 	TaskName string `json:"task_name"`
@@ -67,6 +71,24 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 		data := convertMsgData[authPayload](msg.Data)
 		ws.conns[socket.roomID][socket.conn] = data.AccessToken
 		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "user authenticated", nil)
+
+	case "change_project_name":
+		err := ws.validateUser(socket, service.boardService)
+		if err != nil {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			return
+		}
+		data := convertMsgData[changeProjectNamePayload](msg.Data)
+		if data.Name == "" {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			return
+		}
+		board, err := service.boardService.ChangeProjectName(socket.ctx, socket.roomID, data.Name)
+		if err != nil {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			return
+		}
+		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "project name changed", board)
 
 	case "create_task":
 		err := ws.validateUser(socket, service.boardService)

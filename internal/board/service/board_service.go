@@ -88,3 +88,11 @@ func (s *boardService) CheckIsUserAuthorized(ctx context.Context, boardID, userI
 	isAuthorized = len(id) > 0
 	return
 }
+
+func (s boardService) ChangeProjectName(ctx context.Context, boardID, name string) (board domain.Board, err error) {
+	board, err = s.repository.UpdateBoardName(ctx, boardID, name)
+	if err != nil {
+		log.Error("fail to change project name: ", err)
+	}
+	return
+}

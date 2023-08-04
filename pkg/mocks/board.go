@@ -88,6 +88,30 @@ func (_m *BoardRepository) Init(ctx context.Context, board domain.InitBoardDTO, 
 	return r0, r1
 }
 
+// UpdateBoardName provides a mock function with given fields: ctx, boardID, name
+func (_m *BoardRepository) UpdateBoardName(ctx context.Context, boardID string, name string) (domain.Board, error) {
+	ret := _m.Called(ctx, boardID, name)
+
+	var r0 domain.Board
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (domain.Board, error)); ok {
+		return rf(ctx, boardID, name)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) domain.Board); ok {
+		r0 = rf(ctx, boardID, name)
+	} else {
+		r0 = ret.Get(0).(domain.Board)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, boardID, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewBoardRepository creates a new instance of BoardRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBoardRepository(t interface {
