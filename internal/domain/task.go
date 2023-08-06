@@ -60,11 +60,12 @@ type TaskDAO struct {
 }
 
 func GenerateTaskList(daoList []TaskDAO) (tasks []TaskDTO) {
-	idx := 0
+	idx := -1
 	taskMap := make(map[string]bool)
 
 	for _, l := range daoList {
 		if _, exists := taskMap[l.ID]; !exists {
+			idx++
 			var ts TaskDTO
 			ts.ID = l.ID
 			ts.Order = l.Order
