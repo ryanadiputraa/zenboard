@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ryanadiputraa/zenboard/internal/domain"
@@ -39,5 +40,19 @@ func (r *taskRepository) Create(ctx context.Context, task domain.Task) (created 
 
 func (r *taskRepository) DeleteByID(ctx context.Context, taskID string) (task domain.Task, err error) {
 	err = r.db.QueryRowxContext(ctx, "DELETE FROM tasks WHERE id = $1 RETURNING *", taskID).StructScan(&task)
+	return
+}
+
+func (r *taskRepository) UpdateOrder(ctx context.Context, task []domain.TaskReorderDTO) (err error) {
+	tx := r.db.MustBeginTx(ctx, &sql.TxOptions{})
+	for _, t := range task {
+		_, err = r.db.ExecContext(ctx, `UPDATE tasks SET "order" = $2 WHERE id = $1`, t.ID, t.Order)
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	}
+
+	err = tx.Commit()
 	return
 }

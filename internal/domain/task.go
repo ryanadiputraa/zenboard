@@ -9,12 +9,14 @@ type TaskRepository interface {
 	ListByBoardID(ctx context.Context, boardID string) ([]TaskDAO, error)
 	Create(ctx context.Context, task Task) (Task, error)
 	DeleteByID(ctx context.Context, taskID string) (Task, error)
+	UpdateOrder(ctx context.Context, task []TaskReorderDTO) error
 }
 
 type TaskService interface {
 	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
 	AddBoardTask(ctx context.Context, boardID, taskName string) (TaskDTO, error)
 	DeleteTask(ctx context.Context, taskID string) error
+	UpdateOrder(ctx context.Context, task []TaskReorderDTO) error
 }
 
 type TaskItem struct {
@@ -42,6 +44,11 @@ type TaskDTO struct {
 	Name     string     `json:"name"`
 	BoardID  string     `json:"-"`
 	TaskItem []TaskItem `json:"tasks"`
+}
+
+type TaskReorderDTO struct {
+	ID    string `json:"id" db:"id"`
+	Order int    `json:"order" db:"order"`
 }
 
 type TaskDAO struct {

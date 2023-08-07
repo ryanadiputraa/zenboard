@@ -6,6 +6,7 @@ import (
 
 	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
 
@@ -126,5 +127,25 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 			return
 		}
 		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task deleted", data.TaskID)
+
+	case "reorder_task":
+		err := ws.validateUser(socket, service.boardService)
+		if err != nil {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+		}
+
+		data := convertMsgData[[]domain.TaskReorderDTO](msg.Data)
+		if len(data) == 0 {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			return
+		}
+		logrus.Debug(data)
+
+		err = service.taskService.UpdateOrder(socket.ctx, data)
+		if err != nil {
+			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			return
+		}
+		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task reordered", nil)
 	}
 }
