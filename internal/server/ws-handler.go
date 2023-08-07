@@ -141,11 +141,11 @@ func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg we
 		}
 		logrus.Debug(data)
 
-		err = service.taskService.UpdateOrder(socket.ctx, data)
+		tasks, err := service.taskService.UpdateOrder(socket.ctx, data)
 		if err != nil {
 			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
 			return
 		}
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task reordered", nil)
+		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task reordered", tasks)
 	}
 }

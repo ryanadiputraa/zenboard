@@ -9,14 +9,14 @@ type TaskRepository interface {
 	ListByBoardID(ctx context.Context, boardID string) ([]TaskDAO, error)
 	Create(ctx context.Context, task Task) (Task, error)
 	DeleteByID(ctx context.Context, taskID string) (Task, error)
-	UpdateOrder(ctx context.Context, task []TaskReorderDTO) error
+	UpdateOrder(ctx context.Context, task []TaskReorderDTO) ([]TaskDTO, error)
 }
 
 type TaskService interface {
 	ListBoardTasks(ctx context.Context, boardID string) ([]TaskDTO, error)
 	AddBoardTask(ctx context.Context, boardID, taskName string) (TaskDTO, error)
 	DeleteTask(ctx context.Context, taskID string) error
-	UpdateOrder(ctx context.Context, task []TaskReorderDTO) error
+	UpdateOrder(ctx context.Context, task []TaskReorderDTO) ([]TaskDTO, error)
 }
 
 type TaskItem struct {

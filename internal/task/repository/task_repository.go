@@ -43,14 +43,16 @@ func (r *taskRepository) DeleteByID(ctx context.Context, taskID string) (task do
 	return
 }
 
-func (r *taskRepository) UpdateOrder(ctx context.Context, task []domain.TaskReorderDTO) (err error) {
+func (r *taskRepository) UpdateOrder(ctx context.Context, task []domain.TaskReorderDTO) (tasks []domain.TaskDTO, err error) {
 	tx := r.db.MustBeginTx(ctx, &sql.TxOptions{})
 	for _, t := range task {
-		_, err = r.db.ExecContext(ctx, `UPDATE tasks SET "order" = $2 WHERE id = $1`, t.ID, t.Order)
+		var task domain.TaskDTO
+		err = r.db.QueryRowxContext(ctx, `UPDATE tasks SET "order" = $2 WHERE id = $1 RETURNING id, "order", name`, t.ID, t.Order).StructScan(&task)
 		if err != nil {
 			tx.Rollback()
 			return
 		}
+		tasks = append(tasks, task)
 	}
 
 	err = tx.Commit()

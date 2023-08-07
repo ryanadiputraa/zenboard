@@ -72,8 +72,8 @@ func (s *taskService) DeleteTask(ctx context.Context, taskID string) error {
 	return err
 }
 
-func (s *taskService) UpdateOrder(ctx context.Context, task []domain.TaskReorderDTO) (err error) {
-	err = s.repository.UpdateOrder(ctx, task)
+func (s *taskService) UpdateOrder(ctx context.Context, task []domain.TaskReorderDTO) (tasks []domain.TaskDTO, err error) {
+	tasks, err = s.repository.UpdateOrder(ctx, task)
 	if err != nil {
 		log.Error("fail to update task order: ", err)
 	}
