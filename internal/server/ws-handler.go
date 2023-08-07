@@ -6,8 +6,6 @@ import (
 
 	"github.com/ryanadiputraa/zenboard/internal/domain"
 	"github.com/ryanadiputraa/zenboard/pkg/jwt"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/net/websocket"
 )
 
 type socketResponse struct {
@@ -39,19 +37,6 @@ func convertMsgData[T any](data any) (target T) {
 	return
 }
 
-func (ws *WebSocketServer) broadcast(roomID string, c *websocket.Conn, key string, isSuccess bool, message string, data any) {
-	resp := socketResponse{
-		Key:       key,
-		IsSuccess: isSuccess,
-		Message:   message,
-		Data:      data,
-	}
-	msg, _ := json.Marshal(resp)
-	for conn := range ws.conns[roomID] {
-		conn.Write(msg)
-	}
-}
-
 func (ws *WebSocketServer) validateUser(socket *socket, boardService domain.BoardService) (err error) {
 	token := ws.conns[socket.roomID][socket.conn]
 	userID, err := jwt.ExtractUserIDFromJWTToken(socket.conf, token)
@@ -65,87 +50,73 @@ func (ws *WebSocketServer) validateUser(socket *socket, boardService domain.Boar
 	return
 }
 
+func validateUserAndMessageData[T any](ws *WebSocketServer, socket *socket, boardService domain.BoardService, msgKey string, data any) (target T) {
+	err := ws.validateUser(socket, boardService)
+	if err != nil {
+		ws.SendMessage(socket, msgKey, false, err.Error(), nil)
+		return
+	}
+	target = convertMsgData[T](data)
+	return
+}
+
 func (ws *WebSocketServer) HandleEvent(socket *socket, service wsService, msg webSocketEventMessage) {
 	switch msg.Key {
 	case "auth":
 		data := convertMsgData[authPayload](msg.Data)
 		ws.conns[socket.roomID][socket.conn] = data.AccessToken
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "user authenticated", nil)
+		ws.SendMessage(socket, msg.Key, true, "user authenticated", nil)
 
 	case "change_project_name":
-		err := ws.validateUser(socket, service.boardService)
-		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
-			return
-		}
-		data := convertMsgData[changeProjectNamePayload](msg.Data)
+		data := validateUserAndMessageData[changeProjectNamePayload](ws, socket, service.boardService, msg.Key, msg.Data)
 		if data.Name == "" {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			ws.SendMessage(socket, msg.Key, false, "invalid param", nil)
 			return
 		}
 		board, err := service.boardService.ChangeProjectName(socket.ctx, socket.roomID, data.Name)
 		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			ws.SendMessage(socket, msg.Key, false, err.Error(), nil)
 			return
 		}
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "project name changed", board)
+		ws.Broadcast(socket, msg.Key, true, "project name changed", board)
 
 	case "create_task":
-		err := ws.validateUser(socket, service.boardService)
-		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
-			return
-		}
-		data := convertMsgData[createTaskPayload](msg.Data)
+		data := validateUserAndMessageData[createTaskPayload](ws, socket, service.boardService, msg.Key, msg.Data)
 		if data.TaskName == "" {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			ws.SendMessage(socket, msg.Key, false, "invalid param", nil)
 			return
 		}
-
 		task, err := service.taskService.AddBoardTask(socket.ctx, socket.roomID, data.TaskName)
 		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			ws.SendMessage(socket, msg.Key, false, err.Error(), nil)
 			return
 		}
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task created", task)
+		ws.Broadcast(socket, msg.Key, true, "task created", task)
 
 	case "delete_task":
-		err := ws.validateUser(socket, service.boardService)
-		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
-		}
-
-		data := convertMsgData[deleteTaskPayload](msg.Data)
+		data := validateUserAndMessageData[deleteTaskPayload](ws, socket, service.boardService, msg.Key, msg.Data)
 		if data.TaskID == "" {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			ws.SendMessage(socket, msg.Key, false, "invalid param", nil)
 			return
 		}
-
-		err = service.taskService.DeleteTask(socket.ctx, data.TaskID)
+		err := service.taskService.DeleteTask(socket.ctx, data.TaskID)
 		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			ws.SendMessage(socket, msg.Key, false, err.Error(), nil)
 			return
 		}
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task deleted", data.TaskID)
+		ws.Broadcast(socket, msg.Key, true, "task deleted", data.TaskID)
 
 	case "reorder_task":
-		err := ws.validateUser(socket, service.boardService)
-		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
-		}
-
-		data := convertMsgData[[]domain.TaskReorderDTO](msg.Data)
+		data := validateUserAndMessageData[[]domain.TaskReorderDTO](ws, socket, service.boardService, msg.Key, msg.Data)
 		if len(data) == 0 {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, "invalid param", nil)
+			ws.SendMessage(socket, msg.Key, false, "invalid param", nil)
 			return
 		}
-		logrus.Debug(data)
-
 		tasks, err := service.taskService.UpdateOrder(socket.ctx, data)
 		if err != nil {
-			ws.broadcast(socket.roomID, socket.conn, msg.Key, false, err.Error(), nil)
+			ws.SendMessage(socket, msg.Key, false, err.Error(), nil)
 			return
 		}
-		ws.broadcast(socket.roomID, socket.conn, msg.Key, true, "task reordered", tasks)
+		ws.Broadcast(socket, msg.Key, true, "task reordered", tasks)
 	}
 }

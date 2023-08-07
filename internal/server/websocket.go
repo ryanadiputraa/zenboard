@@ -86,3 +86,27 @@ func (ws *WebSocketServer) ReadLoop(socket *socket, service wsService) {
 		ws.HandleEvent(socket, service, message)
 	}
 }
+
+func (ws *WebSocketServer) SendMessage(socket *socket, key string, isSuccess bool, message string, data any) {
+	resp := socketResponse{
+		Key:       key,
+		IsSuccess: isSuccess,
+		Message:   message,
+		Data:      data,
+	}
+	msg, _ := json.Marshal(resp)
+	socket.conn.Write(msg)
+}
+
+func (ws *WebSocketServer) Broadcast(socket *socket, key string, isSuccess bool, message string, data any) {
+	resp := socketResponse{
+		Key:       key,
+		IsSuccess: isSuccess,
+		Message:   message,
+		Data:      data,
+	}
+	msg, _ := json.Marshal(resp)
+	for conn := range ws.conns[socket.roomID] {
+		conn.Write(msg)
+	}
+}
